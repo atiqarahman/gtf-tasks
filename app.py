@@ -1,6 +1,6 @@
 """
-GTF Command Center v13
-Department colors + drag and drop
+GTF Command Center v14
+Colored drag items by department
 """
 
 import streamlit as st
@@ -50,7 +50,35 @@ dept_colors = {
 if "selected_dept" not in st.session_state:
     st.session_state.selected_dept = None
 
-# Styling
+# Stats
+open_tasks = [t for t in tasks if not t.get("done")]
+done_tasks = [t for t in tasks if t.get("done")]
+today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
+overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
+high_p = [t for t in open_tasks if t.get("priority") == "high"]
+
+def filter_tasks(task_list):
+    if st.session_state.selected_dept:
+        return [t for t in task_list if t.get("department") == st.session_state.selected_dept]
+    return task_list
+
+# Generate dynamic CSS for sortable items based on task colors
+def generate_sortable_css(task_list):
+    css_rules = []
+    for i, task in enumerate(task_list):
+        dk = task.get("department", "quick")
+        color = dept_colors.get(dk, "#6B7280")
+        # Target nth-child of sortable items
+        css_rules.append(f"""
+        [data-testid="stVerticalBlock"] > div:has(> div[data-testid="stSortableContainer"]) div[draggable="true"]:nth-child({i + 1}) {{
+            background: {color} !important;
+            border-radius: 6px !important;
+            margin: 4px 0 !important;
+        }}
+        """)
+    return "\n".join(css_rules)
+
+# Base styling
 st.markdown("""
 <style>
     :root {
@@ -120,15 +148,17 @@ st.markdown("""
     .task-meta { font-size: 0.75rem; color: var(--gray); display: flex; gap: 1rem; align-items: center; }
     .task-dept { font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; }
     .task-due.overdue { color: var(--red); font-weight: 600; }
+    
+    /* Style ALL sortable items with white text */
+    div[draggable="true"] {
+        color: white !important;
+        font-weight: 500 !important;
+        padding: 12px 16px !important;
+        border-radius: 6px !important;
+        margin: 4px 0 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
-
-# Stats
-open_tasks = [t for t in tasks if not t.get("done")]
-done_tasks = [t for t in tasks if t.get("done")]
-today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
-overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
-high_p = [t for t in open_tasks if t.get("priority") == "high"]
 
 # Sidebar
 with st.sidebar:
@@ -174,20 +204,9 @@ st.markdown(f"""
 
 view = st.radio("View", ["Today", "All", "Done"], horizontal=True, label_visibility="collapsed")
 
-def filter_tasks(task_list):
-    if st.session_state.selected_dept:
-        return [t for t in task_list if t.get("department") == st.session_state.selected_dept]
-    return task_list
-
-def get_task_key(task):
-    return task["id"]
-
-def save_new_order(sorted_ids, task_list):
-    id_to_order = {tid: i for i, tid in enumerate(sorted_ids)}
-    for t in data["tasks"]:
-        if t["id"] in id_to_order:
-            t["order"] = id_to_order[t["id"]]
-    save_tasks(data)
+if st.session_state.selected_dept:
+    dept_name = dept_labels.get(st.session_state.selected_dept, "")
+    st.info(f"Filtered: {dept_name}")
 
 def render_task_card(task):
     dk = task.get("department", "quick")
@@ -195,7 +214,6 @@ def render_task_card(task):
     color = dept_colors.get(dk, "#6B7280")
     due = task.get("due_date")
     priority = task.get("priority", "medium")
-    is_done = task.get("done", False)
     
     due_class = ""
     due_text = ""
@@ -221,9 +239,12 @@ def render_task_card(task):
     </div>
     """
 
-if st.session_state.selected_dept:
-    dept_name = dept_labels.get(st.session_state.selected_dept, "")
-    st.info(f"Filtered: {dept_name}")
+def save_new_order(sorted_ids, task_list):
+    id_to_order = {tid: i for i, tid in enumerate(sorted_ids)}
+    for t in data["tasks"]:
+        if t["id"] in id_to_order:
+            t["order"] = id_to_order[t["id"]]
+    save_tasks(data)
 
 # Views
 if view == "Today":
@@ -231,72 +252,94 @@ if view == "Today":
     all_today_sorted = sorted(all_today, key=lambda x: x.get("order", 999))
     
     if all_today_sorted:
-        st.markdown('<div class="section-head">Drag to reorder your day</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-head">Drag to reorder</div>', unsafe_allow_html=True)
         
-        # Create sortable items with task titles
-        items = [t["title"] for t in all_today_sorted]
-        id_map = {t["title"]: t["id"] for t in all_today_sorted}
+        # Inject dynamic CSS for each task color
+        css_items = []
+        for i, task in enumerate(all_today_sorted):
+            dk = task.get("department", "quick")
+            color = dept_colors.get(dk, "#6B7280")
+            css_items.append(f"""
+            div[data-testid="stVerticalBlockBorderWrapper"] div[draggable="true"]:nth-of-type({i + 1}) {{
+                background: {color} !important;
+            }}
+            """)
+        
+        st.markdown(f"<style>{' '.join(css_items)}</style>", unsafe_allow_html=True)
+        
+        # Create sortable with department prefix for visual clarity
+        items = []
+        id_map = {}
+        for t in all_today_sorted:
+            dk = t.get("department", "quick")
+            dept_short = dept_labels.get(dk, "Quick").split()[0] if dept_labels.get(dk) else "Quick"
+            label = f"[{dept_short}] {t['title']}"
+            items.append(label)
+            id_map[label] = t["id"]
         
         sorted_items = sort_items(items, direction="vertical")
         
-        # Check if order changed
         if sorted_items != items:
-            sorted_ids = [id_map[title] for title in sorted_items]
+            sorted_ids = [id_map[label] for label in sorted_items]
             save_new_order(sorted_ids, all_today_sorted)
             st.rerun()
         
-        # Show detailed task cards below
+        # Task details with checkboxes and edit
         st.markdown("---")
-        st.markdown("**Task Details**")
+        st.markdown("**Details & Actions**")
         
-        for title in sorted_items:
-            task = next((t for t in all_today_sorted if t["title"] == title), None)
+        # Rebuild task order based on sorted items
+        sorted_tasks = []
+        for label in sorted_items:
+            tid = id_map[label]
+            task = next((t for t in all_today_sorted if t["id"] == tid), None)
             if task:
-                col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
-                
-                with col1:
-                    done = st.checkbox("", value=task.get("done", False), key=f"done_{task['id']}")
-                    if done != task.get("done", False):
+                sorted_tasks.append(task)
+        
+        for task in sorted_tasks:
+            col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
+            
+            with col1:
+                done = st.checkbox("", value=task.get("done", False), key=f"done_{task['id']}")
+                if done != task.get("done", False):
+                    for t in data["tasks"]:
+                        if t["id"] == task["id"]:
+                            t["done"] = done
+                            if done:
+                                t["completed_date"] = today_str
+                    save_tasks(data)
+                    st.rerun()
+            
+            with col2:
+                st.markdown(render_task_card(task), unsafe_allow_html=True)
+                if task.get("notes"):
+                    st.caption(f"Notes: {task['notes']}")
+            
+            with col3:
+                with st.popover("Edit"):
+                    new_due = st.date_input("Due", 
+                        value=date.fromisoformat(task["due_date"]) if task.get("due_date") else None, 
+                        key=f"due_{task['id']}")
+                    new_priority = st.selectbox("Priority", ["high", "medium", "low"], 
+                        index=["high", "medium", "low"].index(task.get("priority", "medium")),
+                        key=f"pri_{task['id']}")
+                    new_notes = st.text_area("Notes", value=task.get("notes", ""), 
+                        key=f"notes_{task['id']}", height=80)
+                    
+                    if st.button("Save", key=f"save_{task['id']}"):
                         for t in data["tasks"]:
                             if t["id"] == task["id"]:
-                                t["done"] = done
-                                if done:
-                                    t["completed_date"] = today_str
+                                t["due_date"] = new_due.isoformat() if new_due else None
+                                t["priority"] = new_priority
+                                t["notes"] = new_notes
                         save_tasks(data)
                         st.rerun()
-                
-                with col2:
-                    dk = task.get("department", "quick")
-                    color = dept_colors.get(dk, "#6B7280")
-                    st.markdown(render_task_card(task), unsafe_allow_html=True)
-                    if task.get("notes"):
-                        st.caption(f"Notes: {task['notes']}")
-                
-                with col3:
-                    with st.popover("Edit"):
-                        new_due = st.date_input("Due", 
-                            value=date.fromisoformat(task["due_date"]) if task.get("due_date") else None, 
-                            key=f"due_{task['id']}")
-                        new_priority = st.selectbox("Priority", ["high", "medium", "low"], 
-                            index=["high", "medium", "low"].index(task.get("priority", "medium")),
-                            key=f"pri_{task['id']}")
-                        new_notes = st.text_area("Notes", value=task.get("notes", ""), 
-                            key=f"notes_{task['id']}", height=80)
-                        
-                        if st.button("Save", key=f"save_{task['id']}"):
-                            for t in data["tasks"]:
-                                if t["id"] == task["id"]:
-                                    t["due_date"] = new_due.isoformat() if new_due else None
-                                    t["priority"] = new_priority
-                                    t["notes"] = new_notes
-                            save_tasks(data)
-                            st.rerun()
     else:
         st.info("Nothing due today")
 
 elif view == "All":
     filtered = filter_tasks(open_tasks)
-    filtered_sorted = sorted(filtered, key=lambda x: x.get("order", 999))
+    filtered_sorted = sorted(filtered, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
     
     if filtered_sorted:
         st.markdown('<div class="section-head">All Tasks</div>', unsafe_allow_html=True)
@@ -341,7 +384,6 @@ elif view == "Done":
     
     if filtered:
         st.markdown('<div class="section-head">Completed</div>', unsafe_allow_html=True)
-        
         for task in filtered[:30]:
             st.markdown(f"~~{task['title']}~~")
     else:
