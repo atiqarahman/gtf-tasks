@@ -1,0 +1,31 @@
+{
+  "departments": [
+    "customers",
+    "customs_shipping", 
+    "brand_outreach",
+    "brand_followups",
+    "content",
+    "legal",
+    "product",
+    "business",
+    "fundraising",
+    "hiring",
+    "finance",
+    "quick"
+  ],
+  "department_labels": {
+    "customers": "🛍️ Customers",
+    "customs_shipping": "📦 Customs & Shipping",
+    "brand_outreach": "🎯 Brand Outreach",
+    "brand_followups": "🔄 Brand Follow-ups",
+    "content": "📸 Content (Instagram)",
+    "legal": "⚖️ Legal & Contracts",
+    "product": "💻 Product (Dev/Images/Attributes)",
+    "business": "📋 Business Planning",
+    "fundraising": "💰 Fundraising",
+    "hiring": "👥 Hiring",
+    "finance": "💵 Finance & Accounting",
+    "quick": "⚡ Quick Tasks"
+  },
+  "tasks": []
+}
