@@ -1,13 +1,47 @@
 """
-GTF Command Center v17
-Fixed multi-container format + sidebar restored
+GTF Command Center v18
+With live cricket scores
 """
 
 import streamlit as st
 import json
+import requests
 from datetime import datetime, date, timedelta
 from pathlib import Path
 from streamlit_sortables import sort_items
+
+# Cricket live scores
+@st.cache_data(ttl=60)  # Cache for 60 seconds
+def get_live_cricket():
+    try:
+        # Try ESPNCricinfo API
+        url = "https://hs-consumer-api.espncricinfo.com/v1/pages/matches/current?lang=en&latest=true"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        resp = requests.get(url, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            matches = data.get("matches", [])
+            live_matches = []
+            for m in matches[:5]:  # Top 5 matches
+                state = m.get("state", "")
+                if state in ["LIVE", "INNINGS_BREAK", "STRATEGIC_TIMEOUT"]:
+                    teams = m.get("teams", [])
+                    if len(teams) >= 2:
+                        t1 = teams[0].get("team", {}).get("abbreviation", "?")
+                        t2 = teams[1].get("team", {}).get("abbreviation", "?")
+                        score1 = teams[0].get("score", "")
+                        score2 = teams[1].get("score", "")
+                        status = m.get("statusText", "Live")
+                        live_matches.append({
+                            "match": f"{t1} vs {t2}",
+                            "score1": f"{t1}: {score1}" if score1 else "",
+                            "score2": f"{t2}: {score2}" if score2 else "",
+                            "status": status[:40]
+                        })
+            return live_matches
+        return []
+    except:
+        return []
 
 st.set_page_config(
     page_title="GTF Command Center",
@@ -345,9 +379,22 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # T20 World Cup Scores
-    st.markdown("**🏏 T20 World Cup**")
-    st.link_button("📺 Live Scores", "https://www.espncricinfo.com/live-cricket-score", use_container_width=True)
+    # Live Cricket Scores
+    st.markdown("**🏏 Live Cricket**")
+    live_matches = get_live_cricket()
+    if live_matches:
+        for match in live_matches[:3]:
+            st.markdown(f"**{match['match']}**")
+            if match['score1']:
+                st.caption(match['score1'])
+            if match['score2']:
+                st.caption(match['score2'])
+            st.caption(f"_{match['status']}_")
+            st.markdown("")
+    else:
+        st.caption("No live matches right now")
+    
+    st.link_button("📺 All Scores", "https://www.espncricinfo.com/live-cricket-score", use_container_width=True)
     
     # Placeholder for sports book
     st.button("📚 Atiqa's Sports Book", use_container_width=True, disabled=True)
