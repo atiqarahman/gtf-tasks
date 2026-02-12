@@ -1,6 +1,6 @@
 """
-GTF Task Command Center
-Your brain, but organized.
+GTF Command Center
+Clean. Minimal. Get shit done.
 """
 
 import streamlit as st
@@ -8,14 +8,13 @@ import json
 from datetime import datetime, date, timedelta
 from pathlib import Path
 
-# Config
 st.set_page_config(
     page_title="GTF Tasks",
     page_icon="✨",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Data file - use GitHub raw or local
 DATA_FILE = Path(__file__).parent / "tasks.json"
 
 def load_tasks():
@@ -23,244 +22,283 @@ def load_tasks():
         return json.loads(DATA_FILE.read_text())
     return {"departments": [], "department_labels": {}, "tasks": []}
 
-def save_tasks(data):
-    DATA_FILE.write_text(json.dumps(data, indent=2, default=str))
-
-# Load data
 data = load_tasks()
 tasks = data.get("tasks", [])
 dept_labels = data.get("department_labels", {})
 
-# Custom CSS
+# Clean minimal CSS
 st.markdown("""
 <style>
-    .task-card {
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    
+    * { font-family: 'Inter', sans-serif; }
+    
+    .main { background: #fafafa; }
+    
+    .block-container {
+        padding: 2rem 3rem !important;
+        max-width: 1200px;
+    }
+    
+    h1 { 
+        font-weight: 600 !important; 
+        font-size: 1.8rem !important;
+        color: #111 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .subtitle {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-row {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-box {
         background: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 8px 0;
-        border-left: 4px solid #e91e63;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        min-width: 120px;
     }
+    
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #111;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-title {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 2rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .task-item {
+        background: white;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        padding: 0.9rem 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.15s ease;
+    }
+    
+    .task-item:hover {
+        border-color: #ccc;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
     .task-done {
-        border-left-color: #4caf50;
-        opacity: 0.6;
+        opacity: 0.5;
+        text-decoration: line-through;
     }
-    .priority-high { border-left-color: #f44336; }
-    .priority-medium { border-left-color: #ff9800; }
-    .priority-low { border-left-color: #2196f3; }
-    .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 15px;
+    
+    .task-title {
+        font-size: 0.9rem;
+        color: #222;
+        font-weight: 400;
+    }
+    
+    .task-meta {
+        font-size: 0.75rem;
+        color: #999;
+        margin-top: 0.25rem;
+    }
+    
+    .priority-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+    }
+    
+    .priority-high { background: #ef4444; }
+    .priority-medium { background: #f59e0b; }
+    .priority-low { background: #3b82f6; }
+    
+    .overdue { color: #ef4444 !important; font-weight: 500; }
+    
+    .dept-badge {
+        font-size: 0.7rem;
+        background: #f3f4f6;
+        color: #666;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-left: 8px;
+    }
+    
+    .empty-state {
         text-align: center;
+        padding: 3rem;
+        color: #999;
     }
-    .stat-number { font-size: 36px; font-weight: bold; }
-    .stat-label { font-size: 14px; opacity: 0.9; }
-    .today-banner {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 15px;
-        margin-bottom: 20px;
+    
+    /* Hide streamlit stuff */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display: none;}
+    
+    /* Clean up expanders */
+    .streamlit-expanderHeader {
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Radio buttons as tabs */
+    .stRadio > div {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .stRadio label {
+        background: white !important;
+        border: 1px solid #e5e5e5 !important;
+        border-radius: 6px !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .stRadio label[data-checked="true"] {
+        background: #111 !important;
+        color: white !important;
+        border-color: #111 !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # Header
-st.markdown("# ✨ GTF Command Center")
-st.markdown(f"*{datetime.now().strftime('%A, %B %d, %Y')}*")
-
-# Today's focus banner
 today_str = date.today().isoformat()
-today_tasks = [t for t in tasks if not t.get("done") and t.get("due_date") == today_str]
-overdue_tasks = [t for t in tasks if not t.get("done") and t.get("due_date") and t.get("due_date") < today_str]
+st.markdown("# ✨ GTF Command Center")
+st.markdown(f'<p class="subtitle">{datetime.now().strftime("%A, %B %d")}</p>', unsafe_allow_html=True)
 
-if today_tasks or overdue_tasks:
-    st.markdown(f"""
-    <div class="today-banner">
-        <h2 style="margin:0;">🎯 Today's Focus</h2>
-        <p style="margin:5px 0 0 0; font-size: 18px;">
-            {len(today_tasks)} task{'s' if len(today_tasks) != 1 else ''} for today
-            {f' • {len(overdue_tasks)} overdue!' if overdue_tasks else ''}
-        </p>
+# Stats
+open_tasks = [t for t in tasks if not t.get("done")]
+today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
+overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
+high_p = [t for t in open_tasks if t.get("priority") == "high"]
+
+st.markdown(f"""
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="stat-number">{len(open_tasks)}</div>
+        <div class="stat-label">Open</div>
     </div>
-    """, unsafe_allow_html=True)
-
-# Stats row
-col1, col2, col3, col4 = st.columns(4)
-
-total_tasks = len([t for t in tasks if not t.get("done")])
-done_today = len([t for t in tasks if t.get("done") and t.get("completed_date") == today_str])
-high_priority = len([t for t in tasks if not t.get("done") and t.get("priority") == "high"])
-
-with col1:
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-number">{total_tasks}</div>
-        <div class="stat-label">Open Tasks</div>
+    <div class="stat-box">
+        <div class="stat-number">{len(today_tasks)}</div>
+        <div class="stat-label">Today</div>
     </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown(f"""
-    <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-        <div class="stat-number">{done_today}</div>
-        <div class="stat-label">Done Today</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown(f"""
-    <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
-        <div class="stat-number">{high_priority}</div>
-        <div class="stat-label">High Priority</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    st.markdown(f"""
-    <div class="stat-card" style="background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);">
-        <div class="stat-number">{len(overdue_tasks)}</div>
+    <div class="stat-box">
+        <div class="stat-number" style="color: {'#ef4444' if overdue else '#111'}">{len(overdue)}</div>
         <div class="stat-label">Overdue</div>
     </div>
-    """, unsafe_allow_html=True)
+    <div class="stat-box">
+        <div class="stat-number">{len(high_p)}</div>
+        <div class="stat-label">High Priority</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("---")
-
-# View selector
-view = st.radio("View", ["📅 Today", "🗂️ By Department", "⚡ All Tasks", "✅ Completed"], horizontal=True)
+# Navigation
+view = st.radio("", ["Today", "All Tasks", "By Department", "Completed"], horizontal=True, label_visibility="collapsed")
 
 def render_task(task, show_dept=True):
-    priority_class = f"priority-{task.get('priority', 'medium')}"
-    done_class = "task-done" if task.get("done") else ""
-    dept = dept_labels.get(task.get("department", "quick"), "⚡ Quick")
+    priority = task.get("priority", "medium")
+    due = task.get("due_date")
+    dept = dept_labels.get(task.get("department", "quick"), "Quick")
     
-    due = ""
-    if task.get("due_date"):
-        due_date = task["due_date"]
-        if due_date < today_str:
-            due = f"🔴 Overdue ({due_date})"
-        elif due_date == today_str:
-            due = "📍 Today"
+    due_text = ""
+    is_overdue = False
+    if due:
+        if due < today_str:
+            due_text = f"Overdue"
+            is_overdue = True
+        elif due == today_str:
+            due_text = "Today"
         else:
-            due = f"📅 {due_date}"
+            due_text = due
     
-    priority_emoji = {"high": "🔥", "medium": "➡️", "low": "💤"}.get(task.get("priority", "medium"), "")
-    
-    col1, col2 = st.columns([0.9, 0.1])
-    with col1:
-        st.markdown(f"""
-        <div class="task-card {priority_class} {done_class}">
-            <strong>{task['title']}</strong><br>
-            <small>{dept if show_dept else ''} {priority_emoji} {due}</small>
-            {f"<br><small style='color:#666'>{task.get('notes', '')}</small>" if task.get('notes') else ''}
+    st.markdown(f"""
+    <div class="task-item {'task-done' if task.get('done') else ''}">
+        <div>
+            <span class="priority-dot priority-{priority}"></span>
+            <span class="task-title">{task['title']}</span>
+            {f'<span class="dept-badge">{dept.split(" ", 1)[-1] if " " in dept else dept}</span>' if show_dept else ''}
+            <div class="task-meta {'overdue' if is_overdue else ''}">{due_text}</div>
         </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        if not task.get("done"):
-            if st.button("✓", key=f"done_{task['id']}"):
-                for t in tasks:
-                    if t["id"] == task["id"]:
-                        t["done"] = True
-                        t["completed_date"] = today_str
-                save_tasks(data)
-                st.rerun()
+    </div>
+    """, unsafe_allow_html=True)
 
 # Views
-if view == "📅 Today":
-    st.markdown("### 🌅 Today's Tasks")
-    
-    if overdue_tasks:
-        st.markdown("#### 🔴 Overdue")
-        for task in sorted(overdue_tasks, key=lambda x: x.get("priority", "medium") == "high", reverse=True):
+if view == "Today":
+    if overdue:
+        st.markdown('<div class="section-title">⚠️ Overdue</div>', unsafe_allow_html=True)
+        for task in sorted(overdue, key=lambda x: x.get("priority") != "high"):
             render_task(task)
     
     if today_tasks:
-        st.markdown("#### 📍 Due Today")
-        for task in sorted(today_tasks, key=lambda x: x.get("priority", "medium") == "high", reverse=True):
+        st.markdown('<div class="section-title">📍 Due Today</div>', unsafe_allow_html=True)
+        for task in sorted(today_tasks, key=lambda x: x.get("priority") != "high"):
             render_task(task)
     
-    if not today_tasks and not overdue_tasks:
-        st.info("🎉 Nothing due today! Check 'All Tasks' or add something.")
+    if not today_tasks and not overdue:
+        st.markdown('<div class="empty-state">Nothing due today ✨</div>', unsafe_allow_html=True)
 
-elif view == "🗂️ By Department":
-    # Two columns of departments
+elif view == "All Tasks":
+    st.markdown('<div class="section-title">All Open Tasks</div>', unsafe_allow_html=True)
+    
+    for task in sorted(open_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
+        render_task(task)
+    
+    if not open_tasks:
+        st.markdown('<div class="empty-state">No open tasks</div>', unsafe_allow_html=True)
+
+elif view == "By Department":
     cols = st.columns(2)
     
     for i, (dept_key, dept_name) in enumerate(dept_labels.items()):
-        dept_tasks = [t for t in tasks if not t.get("done") and t.get("department") == dept_key]
+        dept_tasks = [t for t in open_tasks if t.get("department") == dept_key]
         
         with cols[i % 2]:
-            with st.expander(f"{dept_name} ({len(dept_tasks)})", expanded=len(dept_tasks) > 0):
+            with st.expander(f"{dept_name} ({len(dept_tasks)})", expanded=False):
                 if dept_tasks:
-                    for task in sorted(dept_tasks, key=lambda x: (x.get("priority", "medium") != "high", x.get("due_date") or "9999")):
+                    for task in sorted(dept_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
                         render_task(task, show_dept=False)
                 else:
                     st.markdown("*No tasks*")
 
-elif view == "⚡ All Tasks":
-    st.markdown("### All Open Tasks")
-    
-    open_tasks = [t for t in tasks if not t.get("done")]
-    
-    # Filters
-    col1, col2 = st.columns(2)
-    with col1:
-        filter_dept = st.selectbox("Filter by department", ["All"] + list(dept_labels.values()))
-    with col2:
-        filter_priority = st.selectbox("Filter by priority", ["All", "🔥 High", "➡️ Medium", "💤 Low"])
-    
-    for task in sorted(open_tasks, key=lambda x: (x.get("priority", "medium") != "high", x.get("due_date") or "9999")):
-        dept_match = filter_dept == "All" or dept_labels.get(task.get("department")) == filter_dept
-        priority_map = {"🔥 High": "high", "➡️ Medium": "medium", "💤 Low": "low"}
-        priority_match = filter_priority == "All" or task.get("priority") == priority_map.get(filter_priority)
-        
-        if dept_match and priority_match:
-            render_task(task)
-
-elif view == "✅ Completed":
-    st.markdown("### Completed Tasks")
-    
+elif view == "Completed":
     done_tasks = [t for t in tasks if t.get("done")]
     done_tasks = sorted(done_tasks, key=lambda x: x.get("completed_date", ""), reverse=True)
     
+    st.markdown('<div class="section-title">Completed</div>', unsafe_allow_html=True)
+    
     if done_tasks:
-        for task in done_tasks[:50]:  # Show last 50
+        for task in done_tasks[:30]:
             render_task(task)
     else:
-        st.info("No completed tasks yet. Get to work! 💪")
+        st.markdown('<div class="empty-state">Nothing completed yet. Get to work 💪</div>', unsafe_allow_html=True)
 
-# Sidebar - Quick Add
-st.sidebar.markdown("## ➕ Quick Add")
-
-with st.sidebar.form("add_task"):
-    new_title = st.text_input("Task")
-    new_dept = st.selectbox("Department", options=list(dept_labels.keys()), format_func=lambda x: dept_labels[x])
-    new_priority = st.select_slider("Priority", options=["low", "medium", "high"], value="medium")
-    new_due = st.date_input("Due date", value=None)
-    new_notes = st.text_area("Notes (optional)", height=68)
-    
-    if st.form_submit_button("Add Task"):
-        if new_title:
-            new_task = {
-                "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
-                "title": new_title,
-                "department": new_dept,
-                "priority": new_priority,
-                "due_date": new_due.isoformat() if new_due else None,
-                "notes": new_notes,
-                "done": False,
-                "created": datetime.now().isoformat()
-            }
-            data["tasks"].append(new_task)
-            save_tasks(data)
-            st.rerun()
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 💬 Pro tip")
-st.sidebar.markdown("*Just text Zoya to add tasks! Say things like:*")
-st.sidebar.markdown("- 'Add task: follow up with X brand'")
-st.sidebar.markdown("- 'Done with shipping research'")
-st.sidebar.markdown("- 'What's on my plate today?'")
+# Footer tip
+st.markdown("---")
+st.markdown("*💬 Text Zoya to add tasks, mark done, or ask \"what's on my plate?\"*")
