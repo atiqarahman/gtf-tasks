@@ -357,6 +357,16 @@
       "notes": "",
       "done": false,
       "created": "2026-02-12T17:53:05.668365"
+    },
+    {
+      "id": "20260212190817",
+      "title": "Follow up with Bobo team for the empty folder",
+      "department": "brand_followups",
+      "priority": "high",
+      "due_date": "2026-02-13",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T19:08:17.773983"
     }
   ]
 }
