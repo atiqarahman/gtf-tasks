@@ -205,12 +205,18 @@ with st.sidebar:
     
     # Zoya suggestions section
     st.markdown("---")
-    zoya_suggestions = [t for t in open_tasks if t.get("zoya_can_help")]
+    zoya_suggestions = [t for t in open_tasks if t.get("zoya_can_help") and t.get("zoya_status") != "approved" and t.get("zoya_status") != "denied"]
+    zoya_in_progress = [t for t in open_tasks if t.get("zoya_status") == "approved"]
+    
+    if zoya_in_progress:
+        st.markdown(f"**🚀 Zoya Working On** ({len(zoya_in_progress)})")
+        for zt in zoya_in_progress[:3]:
+            st.caption(f"⏳ {zt['title'][:30]}...")
     
     if zoya_suggestions:
         st.markdown(f"**✨ Zoya Can Help** ({len(zoya_suggestions)})")
         for zt in zoya_suggestions[:5]:
-            with st.expander(f"📌 {zt['title'][:25]}...", expanded=False):
+            with st.expander(f"📌 {zt['title'][:22]}...", expanded=False):
                 st.markdown(f"**{zt['title']}**")
                 st.caption(zt.get("zoya_suggestion", "I can help with this task"))
                 
@@ -219,8 +225,8 @@ with st.sidebar:
                     if st.button("✅ Approve", key=f"zoya_approve_{zt['id']}", use_container_width=True):
                         for t in data["tasks"]:
                             if t["id"] == zt["id"]:
-                                t["zoya_approved"] = True
                                 t["zoya_status"] = "approved"
+                                t["zoya_approved_at"] = datetime.now().isoformat()
                         save_tasks(data)
                         st.rerun()
                 
@@ -233,23 +239,84 @@ with st.sidebar:
                         save_tasks(data)
                         st.rerun()
                 
-                col3, col4 = st.columns(2)
-                with col3:
-                    if st.button("⏰ Remind", key=f"zoya_remind_{zt['id']}", use_container_width=True):
+                # Remind with date picker
+                st.markdown("**⏰ Remind me to discuss:**")
+                remind_cols = st.columns(3)
+                with remind_cols[0]:
+                    if st.button("Today", key=f"remind_today_{zt['id']}", use_container_width=True):
+                        # Create reminder task
+                        new_task = {
+                            "id": datetime.now().strftime("%Y%m%d%H%M%S") + zt["id"][:4],
+                            "title": f"💬 Chat with Zoya about: {zt['title'][:30]}",
+                            "department": zt.get("department", "quick"),
+                            "priority": "high",
+                            "due_date": today_str,
+                            "notes": f"Discuss Zoya's suggestion: {zt.get('zoya_suggestion', '')}",
+                            "done": False,
+                            "created": datetime.now().isoformat(),
+                            "is_zoya_reminder": True,
+                            "original_task_id": zt["id"]
+                        }
+                        data["tasks"].append(new_task)
                         for t in data["tasks"]:
                             if t["id"] == zt["id"]:
-                                t["zoya_status"] = "remind_later"
+                                t["zoya_status"] = "remind_scheduled"
                         save_tasks(data)
                         st.rerun()
                 
-                with col4:
-                    if st.button("💬 Chat", key=f"zoya_chat_{zt['id']}", use_container_width=True):
+                with remind_cols[1]:
+                    if st.button("Tomorrow", key=f"remind_tmrw_{zt['id']}", use_container_width=True):
+                        new_task = {
+                            "id": datetime.now().strftime("%Y%m%d%H%M%S") + zt["id"][:4],
+                            "title": f"💬 Chat with Zoya about: {zt['title'][:30]}",
+                            "department": zt.get("department", "quick"),
+                            "priority": "high",
+                            "due_date": (today + timedelta(days=1)).isoformat(),
+                            "notes": f"Discuss Zoya's suggestion: {zt.get('zoya_suggestion', '')}",
+                            "done": False,
+                            "created": datetime.now().isoformat(),
+                            "is_zoya_reminder": True,
+                            "original_task_id": zt["id"]
+                        }
+                        data["tasks"].append(new_task)
                         for t in data["tasks"]:
                             if t["id"] == zt["id"]:
-                                t["zoya_status"] = "needs_chat"
+                                t["zoya_status"] = "remind_scheduled"
                         save_tasks(data)
                         st.rerun()
-    else:
+                
+                with remind_cols[2]:
+                    remind_date = st.date_input("Pick", value=today, key=f"remind_date_{zt['id']}", label_visibility="collapsed")
+                    if st.button("Set", key=f"remind_set_{zt['id']}", use_container_width=True):
+                        new_task = {
+                            "id": datetime.now().strftime("%Y%m%d%H%M%S") + zt["id"][:4],
+                            "title": f"💬 Chat with Zoya about: {zt['title'][:30]}",
+                            "department": zt.get("department", "quick"),
+                            "priority": "high",
+                            "due_date": remind_date.isoformat(),
+                            "notes": f"Discuss Zoya's suggestion: {zt.get('zoya_suggestion', '')}",
+                            "done": False,
+                            "created": datetime.now().isoformat(),
+                            "is_zoya_reminder": True,
+                            "original_task_id": zt["id"]
+                        }
+                        data["tasks"].append(new_task)
+                        for t in data["tasks"]:
+                            if t["id"] == zt["id"]:
+                                t["zoya_status"] = "remind_scheduled"
+                        save_tasks(data)
+                        st.rerun()
+                
+                # Chat now button
+                if st.button("💬 Let's Chat Now", key=f"zoya_chat_{zt['id']}", use_container_width=True):
+                    for t in data["tasks"]:
+                        if t["id"] == zt["id"]:
+                            t["zoya_status"] = "chat_now"
+                            t["zoya_chat_requested_at"] = datetime.now().isoformat()
+                    save_tasks(data)
+                    st.rerun()
+    
+    elif not zoya_in_progress:
         st.markdown("**✨ Zoya Can Help**")
         st.caption("No suggestions yet")
     
