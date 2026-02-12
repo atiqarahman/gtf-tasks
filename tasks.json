@@ -29,52 +29,292 @@
   },
   "tasks": [
     {
-      "id": "20260212165001",
-      "title": "Send new API key to Mukesh",
-      "department": "product",
-      "priority": "high",
-      "due_date": "2026-02-12",
-      "notes": "Old key was exposed, needs rotation",
-      "done": false,
-      "created": "2026-02-12T16:50:00"
-    },
-    {
-      "id": "20260212165002",
-      "title": "Follow up with Bobo Calcutta on catalog",
-      "department": "brand_followups",
+      "id": "g001",
+      "title": "Start accounting work",
+      "department": "finance",
       "priority": "medium",
-      "due_date": "2026-02-13",
+      "due_date": "2026-02-11",
       "notes": "",
       "done": false,
-      "created": "2026-02-12T16:50:00"
+      "created": "2026-02-12T16:00:00"
     },
     {
-      "id": "20260212165003",
-      "title": "Plan Instagram content for next week",
-      "department": "content",
+      "id": "g002",
+      "title": "Make brand contracts with lawyer",
+      "department": "legal",
+      "priority": "low",
+      "due_date": "2026-02-14",
+      "notes": "Zoya to draft",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g003",
+      "title": "Try On Dress brand follow up",
+      "department": "brand_followups",
+      "priority": "high",
+      "due_date": "2026-02-13",
+      "notes": "CSV due Feb 13",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g004",
+      "title": "Founder of Badooni follow up",
+      "department": "brand_outreach",
+      "priority": "low",
+      "due_date": "2026-02-11",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g005",
+      "title": "SKU ↔ Google Drive image matching",
+      "department": "product",
+      "priority": "low",
+      "due_date": "2026-02-12",
+      "notes": "Zoya task",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g006",
+      "title": "Brand outreach strategy - email automation with Zoya",
+      "department": "brand_outreach",
+      "priority": "high",
+      "due_date": "2026-02-12",
+      "notes": "Email automation started",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g007",
+      "title": "Fundraising angel strategy",
+      "department": "fundraising",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "Atiqa + Zoya",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g008",
+      "title": "Speak to Shopify",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g009",
+      "title": "Job description for Head of Tech",
+      "department": "hiring",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "Atiqa + Zoya",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g010",
+      "title": "LinkedIn outreach strategy",
+      "department": "hiring",
       "priority": "medium",
       "due_date": "2026-02-14",
       "notes": "",
       "done": false,
-      "created": "2026-02-12T16:50:00"
+      "created": "2026-02-12T16:00:00"
     },
     {
-      "id": "20260212165004",
-      "title": "Research DDP shipping costs for EU",
-      "department": "customs_shipping",
-      "priority": "low",
-      "due_date": null,
-      "notes": "Check Zonos integration options",
-      "done": false,
-      "created": "2026-02-12T16:50:00"
-    },
-    {
-      "id": "20260212165005",
-      "title": "Draft brand contract template with lawyer",
-      "department": "legal",
-      "priority": "high",
-      "due_date": "2026-02-15",
+      "id": "g011",
+      "title": "Fix LinkedIn profile",
+      "department": "hiring",
+      "priority": "medium",
+      "due_date": "2026-02-14",
       "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g012",
+      "title": "Pitch deck updates",
+      "department": "fundraising",
+      "priority": "medium",
+      "due_date": null,
+      "notes": "Ongoing",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g013",
+      "title": "Indian brands deck - finalize",
+      "department": "fundraising",
+      "priority": "medium",
+      "due_date": "2026-02-12",
+      "notes": "Speak w Mrigranka",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g014",
+      "title": "International brands deck - create",
+      "department": "fundraising",
+      "priority": "medium",
+      "due_date": "2026-02-12",
+      "notes": "Separate version/strategy",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g015",
+      "title": "Cynthia Witmanner follow up",
+      "department": "brand_followups",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g016",
+      "title": "House of Nikita follow up",
+      "department": "brand_followups",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g017",
+      "title": "Love by Aisha follow up",
+      "department": "brand_followups",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g018",
+      "title": "Follow up with Nikitha",
+      "department": "brand_followups",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g019",
+      "title": "Call Mashreq bank",
+      "department": "finance",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g020",
+      "title": "Make document for shipping companies",
+      "department": "customs_shipping",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g021",
+      "title": "Follow up with all shipping companies",
+      "department": "customs_shipping",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g022",
+      "title": "Follow up with Abdul",
+      "department": "customs_shipping",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY - shipping related",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g023",
+      "title": "Planning front end of website",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-14",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g024",
+      "title": "Meeting with attribute extractors",
+      "department": "product",
+      "priority": "medium",
+      "due_date": "2026-02-16",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g025",
+      "title": "Scope of work for Rahul and Shivraj",
+      "department": "product",
+      "priority": "high",
+      "due_date": null,
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g026",
+      "title": "Brand processing of images",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-11",
+      "notes": "PRIORITY - attribute extraction",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g027",
+      "title": "Order Selina cake",
+      "department": "quick",
+      "priority": "medium",
+      "due_date": null,
+      "notes": "Personal",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g028",
+      "title": "Bake price of Shopify fee into pricing",
+      "department": "business",
+      "priority": "medium",
+      "due_date": null,
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:00:00"
+    },
+    {
+      "id": "g029",
+      "title": "Send new API key to Mukesh",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-12",
+      "notes": "Old key was exposed",
       "done": false,
       "created": "2026-02-12T16:50:00"
     }
