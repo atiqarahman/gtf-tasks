@@ -199,18 +199,11 @@ if st.session_state.selected_dept:
     st.info(f"Filtered: {dept_labels.get(st.session_state.selected_dept, '')}")
 
 if st.session_state.show_calendar:
-    # Calendar view - 7 day columns with cross-day drag
-    st.markdown("**Drag tasks between days to reschedule**")
+    # Calendar view with colored task cards
+    days = [(today + timedelta(days=i-1)) for i in range(7)]
+    cols = st.columns(7)
     
-    # Create 7 day columns
-    days = [(today + timedelta(days=i-1)) for i in range(7)]  # Yesterday through 5 days out
-    
-    # Build multi-container structure for cross-day drag
-    task_id_map = {}  # maps display label -> task id
-    task_date_map = {}  # maps display label -> original date
-    
-    multi_items = []
-    for d in days:
+    for i, d in enumerate(days):
         d_str = d.isoformat()
         day_tasks = [t for t in filter_tasks(open_tasks) if t.get("due_date") == d_str]
         day_tasks = sorted(day_tasks, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
@@ -219,75 +212,58 @@ if st.session_state.show_calendar:
         if d == today:
             day_name = "📍 TODAY"
         elif d == today - timedelta(days=1):
-            day_name = "Yesterday"
+            day_name = "Yesterday"  
         elif d == today + timedelta(days=1):
             day_name = "Tomorrow"
         else:
             day_name = f"{d.strftime('%a')} {d.day}"
         
-        items = []
-        for t in day_tasks:
-            dk = t.get("department", "quick")
-            dept_name = dept_labels.get(dk, "")[:8]
-            color = dept_colors.get(dk, "#6B7280")
-            label = t["title"][:22] + "..." if len(t["title"]) > 22 else t["title"]
-            # Include color tag in display
-            display = f"🏷️{dk[:3].upper()}|{label}"
-            items.append(display)
-            task_id_map[display] = t["id"]
-            task_date_map[display] = d_str
-        
-        multi_items.append({
-            "header": day_name,
-            "items": items
-        })
+        with cols[i]:
+            title_class = "day-title today" if d == today else "day-title"
+            st.markdown(f'<div class="{title_class}">{day_name}<br><span style="font-size:1.2rem">{d.day}</span></div>', unsafe_allow_html=True)
+            
+            # Render colored task cards
+            if day_tasks:
+                cards_html = ""
+                for t in day_tasks:
+                    dk = t.get("department", "quick")
+                    color = dept_colors.get(dk, "#6B7280")
+                    label = t["title"][:20] + "..." if len(t["title"]) > 20 else t["title"]
+                    cards_html += f'<div style="background:{color}; color:white; padding:8px 10px; border-radius:6px; margin-bottom:6px; font-size:0.75rem; font-weight:500;">{label}</div>'
+                st.markdown(cards_html, unsafe_allow_html=True)
+            else:
+                st.caption("—")
     
-    # Custom CSS for colored tags
-    tag_css = "<style>"
-    for dk, color in dept_colors.items():
-        tag_css += f"""
-        [data-testid="stVerticalBlock"] div[data-testid="sortable-item"]:has-text("{dk[:3].upper()}") {{
-            background: linear-gradient(90deg, {color} 4px, white 4px) !important;
-        }}
-        """
-    tag_css += """
-    .colored-tag {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 0.65rem;
-        font-weight: 600;
-        color: white;
-        margin-right: 4px;
-    }
-    </style>"""
-    st.markdown(tag_css, unsafe_allow_html=True)
+    # Reschedule tool
+    st.markdown("---")
+    st.markdown("**Move Task Between Days**")
+    c1, c2, c3 = st.columns([3, 2, 1])
     
-    # Multi-container sortables
-    sorted_multi = sort_items(multi_items, multi_containers=True, direction="vertical")
-    
-    # Check for changes and save
-    changes_made = False
-    for i, container in enumerate(sorted_multi):
-        new_date = days[i].isoformat()
-        for order_idx, display in enumerate(container.get("items", [])):
-            tid = task_id_map.get(display)
-            old_date = task_date_map.get(display)
-            if tid:
+    with c1:
+        task_opts = {f"{t['title'][:40]}": t["id"] for t in filter_tasks(open_tasks)}
+        selected_title = st.selectbox("Select task", list(task_opts.keys()), label_visibility="collapsed")
+    with c2:
+        day_opts = {}
+        for d in days:
+            if d == today:
+                day_opts["Today"] = d.isoformat()
+            elif d == today + timedelta(days=1):
+                day_opts["Tomorrow"] = d.isoformat()
+            else:
+                day_opts[d.strftime("%a %d")] = d.isoformat()
+        target_day = st.selectbox("Move to", list(day_opts.keys()), label_visibility="collapsed")
+    with c3:
+        if st.button("Move →", use_container_width=True):
+            tid = task_opts.get(selected_title)
+            new_date = day_opts.get(target_day)
+            if tid and new_date:
                 for t in data["tasks"]:
                     if t["id"] == tid:
-                        if t.get("due_date") != new_date:
-                            t["due_date"] = new_date
-                            changes_made = True
-                        if t.get("order") != order_idx:
-                            t["order"] = order_idx
-                            changes_made = True
+                        t["due_date"] = new_date
+                save_tasks(data)
+                st.rerun()
     
-    if changes_made:
-        save_tasks(data)
-        st.rerun()
-    
-    # Show legend of department colors
+    # Color legend
     st.markdown("---")
     legend_html = "<div style='display:flex; flex-wrap:wrap; gap:8px; align-items:center;'><span style='font-size:0.75rem; color:#888;'>Departments:</span>"
     for dk, dn in dept_labels.items():
@@ -298,26 +274,7 @@ if st.session_state.show_calendar:
     legend_html += "</div>"
     st.markdown(legend_html, unsafe_allow_html=True)
     
-    # Quick reschedule fallback
-    with st.expander("Quick Reschedule (manual)", expanded=False):
-        col1, col2, col3 = st.columns([2, 1, 1])
-        
-        with col1:
-            task_options = {t["title"]: t["id"] for t in filter_tasks(open_tasks)}
-            selected = st.selectbox("Task", list(task_options.keys()), label_visibility="collapsed")
-        with col2:
-            new_date = st.date_input("To", value=today, label_visibility="collapsed")
-        with col3:
-            if st.button("Move", use_container_width=True):
-                tid = task_options.get(selected)
-                if tid:
-                    for t in data["tasks"]:
-                        if t["id"] == tid:
-                            t["due_date"] = new_date.isoformat()
-                    save_tasks(data)
-                    st.rerun()
-    
-    # Show overdue
+    # Overdue section with colored cards
     overdue_filtered = filter_tasks(overdue)
     if overdue_filtered:
         st.markdown("---")
@@ -326,7 +283,7 @@ if st.session_state.show_calendar:
         for t in overdue_filtered[:15]:
             dk = t.get("department", "quick")
             color = dept_colors.get(dk, "#6B7280")
-            overdue_html += f'<span style="background:{color}; color:white; padding:6px 10px; border-radius:6px; font-size:0.75rem; cursor:pointer;">{t["title"][:30]}</span>'
+            overdue_html += f'<span style="background:{color}; color:white; padding:6px 10px; border-radius:6px; font-size:0.75rem;">{t["title"][:30]}</span>'
         overdue_html += "</div>"
         st.markdown(overdue_html, unsafe_allow_html=True)
 
