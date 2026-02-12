@@ -1,13 +1,13 @@
 """
-GTF Command Center v14
-Colored drag items by department
+GTF Command Center v15
+Calendar view with expand/collapse
 """
 
 import streamlit as st
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
-from streamlit_sortables import sort_items
+from calendar import monthcalendar, month_name
 
 st.set_page_config(
     page_title="GTF Command Center",
@@ -30,6 +30,7 @@ data = load_tasks()
 tasks = data.get("tasks", [])
 dept_labels = data.get("department_labels", {})
 today_str = date.today().isoformat()
+today = date.today()
 
 # Department colors
 dept_colors = {
@@ -49,36 +50,10 @@ dept_colors = {
 
 if "selected_dept" not in st.session_state:
     st.session_state.selected_dept = None
+if "show_calendar" not in st.session_state:
+    st.session_state.show_calendar = False
 
-# Stats
-open_tasks = [t for t in tasks if not t.get("done")]
-done_tasks = [t for t in tasks if t.get("done")]
-today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
-overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
-high_p = [t for t in open_tasks if t.get("priority") == "high"]
-
-def filter_tasks(task_list):
-    if st.session_state.selected_dept:
-        return [t for t in task_list if t.get("department") == st.session_state.selected_dept]
-    return task_list
-
-# Generate dynamic CSS for sortable items based on task colors
-def generate_sortable_css(task_list):
-    css_rules = []
-    for i, task in enumerate(task_list):
-        dk = task.get("department", "quick")
-        color = dept_colors.get(dk, "#6B7280")
-        # Target nth-child of sortable items
-        css_rules.append(f"""
-        [data-testid="stVerticalBlock"] > div:has(> div[data-testid="stSortableContainer"]) div[draggable="true"]:nth-child({i + 1}) {{
-            background: {color} !important;
-            border-radius: 6px !important;
-            margin: 4px 0 !important;
-        }}
-        """)
-    return "\n".join(css_rules)
-
-# Base styling
+# Styling
 st.markdown("""
 <style>
     :root {
@@ -97,7 +72,7 @@ st.markdown("""
     .main .block-container {
         background-color: var(--cream) !important;
         padding: 2rem 3rem !important;
-        max-width: 1100px !important;
+        max-width: 1400px !important;
     }
     
     section[data-testid="stSidebar"], section[data-testid="stSidebar"] > div {
@@ -149,16 +124,113 @@ st.markdown("""
     .task-dept { font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; }
     .task-due.overdue { color: var(--red); font-weight: 600; }
     
-    /* Style ALL sortable items with white text */
-    div[draggable="true"] {
-        color: white !important;
-        font-weight: 500 !important;
-        padding: 12px 16px !important;
-        border-radius: 6px !important;
-        margin: 4px 0 !important;
+    /* Calendar styles */
+    .calendar-container {
+        background: var(--white);
+        border: 1px solid var(--light-gray);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .calendar-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--charcoal);
+    }
+    
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+    
+    .calendar-day-header {
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--gray);
+        text-transform: uppercase;
+        padding: 0.5rem;
+    }
+    
+    .calendar-day {
+        min-height: 100px;
+        background: var(--cream);
+        border: 1px solid var(--light-gray);
+        padding: 0.5rem;
+        vertical-align: top;
+    }
+    
+    .calendar-day.today {
+        background: #FEF3C7;
+    }
+    
+    .calendar-day.other-month {
+        background: #f5f5f5;
+        opacity: 0.5;
+    }
+    
+    .calendar-date {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--charcoal);
+        margin-bottom: 0.5rem;
+    }
+    
+    .calendar-date.today {
+        background: var(--red);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .calendar-task {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        border-radius: 4px;
+        margin-bottom: 3px;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+    
+    .calendar-task:hover {
+        opacity: 0.8;
+    }
+    
+    .calendar-more {
+        font-size: 0.65rem;
+        color: var(--gray);
+        cursor: pointer;
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Stats
+open_tasks = [t for t in tasks if not t.get("done")]
+done_tasks = [t for t in tasks if t.get("done")]
+today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
+overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
+high_p = [t for t in open_tasks if t.get("priority") == "high"]
+
+def filter_tasks(task_list):
+    if st.session_state.selected_dept:
+        return [t for t in task_list if t.get("department") == st.session_state.selected_dept]
+    return task_list
 
 # Sidebar
 with st.sidebar:
@@ -202,6 +274,122 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# Calendar toggle button
+col1, col2, col3 = st.columns([1, 1, 1])
+with col1:
+    if st.button("📅 Expand Calendar View" if not st.session_state.show_calendar else "📅 Collapse Calendar", use_container_width=True):
+        st.session_state.show_calendar = not st.session_state.show_calendar
+        st.rerun()
+
+# Calendar View
+if st.session_state.show_calendar:
+    st.markdown("---")
+    
+    # Get tasks organized by date
+    tasks_by_date = {}
+    for t in open_tasks:
+        due = t.get("due_date")
+        if due:
+            if due not in tasks_by_date:
+                tasks_by_date[due] = []
+            tasks_by_date[due].append(t)
+    
+    # Calendar navigation
+    if "cal_month" not in st.session_state:
+        st.session_state.cal_month = today.month
+    if "cal_year" not in st.session_state:
+        st.session_state.cal_year = today.year
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        if st.button("< Prev"):
+            if st.session_state.cal_month == 1:
+                st.session_state.cal_month = 12
+                st.session_state.cal_year -= 1
+            else:
+                st.session_state.cal_month -= 1
+            st.rerun()
+    with col2:
+        st.markdown(f"### {month_name[st.session_state.cal_month]} {st.session_state.cal_year}")
+    with col3:
+        if st.button("Next >"):
+            if st.session_state.cal_month == 12:
+                st.session_state.cal_month = 1
+                st.session_state.cal_year += 1
+            else:
+                st.session_state.cal_month += 1
+            st.rerun()
+    
+    # Build calendar HTML
+    cal = monthcalendar(st.session_state.cal_year, st.session_state.cal_month)
+    
+    calendar_html = '<div class="calendar-container"><div class="calendar-grid">'
+    
+    # Day headers
+    for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
+        calendar_html += f'<div class="calendar-day-header">{day}</div>'
+    
+    # Days
+    for week in cal:
+        for day in week:
+            if day == 0:
+                calendar_html += '<div class="calendar-day other-month"></div>'
+            else:
+                day_date = date(st.session_state.cal_year, st.session_state.cal_month, day)
+                day_str = day_date.isoformat()
+                is_today = day_date == today
+                
+                day_class = "calendar-day"
+                if is_today:
+                    day_class += " today"
+                
+                date_class = "calendar-date"
+                if is_today:
+                    date_class += " today"
+                
+                calendar_html += f'<div class="{day_class}">'
+                calendar_html += f'<div class="{date_class}">{day}</div>'
+                
+                # Tasks for this day
+                day_tasks = tasks_by_date.get(day_str, [])
+                shown = 0
+                for t in day_tasks[:3]:
+                    dk = t.get("department", "quick")
+                    color = dept_colors.get(dk, "#6B7280")
+                    calendar_html += f'<div class="calendar-task" style="background: {color};" title="{t["title"]}">{t["title"]}</div>'
+                    shown += 1
+                
+                if len(day_tasks) > 3:
+                    calendar_html += f'<div class="calendar-more">+{len(day_tasks) - 3} more</div>'
+                
+                calendar_html += '</div>'
+    
+    calendar_html += '</div></div>'
+    
+    st.markdown(calendar_html, unsafe_allow_html=True)
+    
+    # Quick task moving
+    st.markdown("**Quick Move Task**")
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        task_options = {f"{t['title']}": t['id'] for t in open_tasks}
+        selected_task = st.selectbox("Select task", options=list(task_options.keys()), label_visibility="collapsed")
+    with col2:
+        new_date = st.date_input("New date", value=today, label_visibility="collapsed")
+    with col3:
+        if st.button("Move"):
+            task_id = task_options.get(selected_task)
+            if task_id:
+                for t in data["tasks"]:
+                    if t["id"] == task_id:
+                        t["due_date"] = new_date.isoformat()
+                save_tasks(data)
+                st.success(f"Moved!")
+                st.rerun()
+    
+    st.markdown("---")
+
+# Regular view tabs
 view = st.radio("View", ["Today", "All", "Done"], horizontal=True, label_visibility="collapsed")
 
 if st.session_state.selected_dept:
@@ -239,64 +427,15 @@ def render_task_card(task):
     </div>
     """
 
-def save_new_order(sorted_ids, task_list):
-    id_to_order = {tid: i for i, tid in enumerate(sorted_ids)}
-    for t in data["tasks"]:
-        if t["id"] in id_to_order:
-            t["order"] = id_to_order[t["id"]]
-    save_tasks(data)
-
 # Views
 if view == "Today":
     all_today = filter_tasks(overdue + today_tasks)
-    all_today_sorted = sorted(all_today, key=lambda x: x.get("order", 999))
+    all_today_sorted = sorted(all_today, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
     
     if all_today_sorted:
-        st.markdown('<div class="section-head">Drag to reorder</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-head">Today\'s Tasks</div>', unsafe_allow_html=True)
         
-        # Inject dynamic CSS for each task color
-        css_items = []
-        for i, task in enumerate(all_today_sorted):
-            dk = task.get("department", "quick")
-            color = dept_colors.get(dk, "#6B7280")
-            css_items.append(f"""
-            div[data-testid="stVerticalBlockBorderWrapper"] div[draggable="true"]:nth-of-type({i + 1}) {{
-                background: {color} !important;
-            }}
-            """)
-        
-        st.markdown(f"<style>{' '.join(css_items)}</style>", unsafe_allow_html=True)
-        
-        # Create sortable with department prefix for visual clarity
-        items = []
-        id_map = {}
-        for t in all_today_sorted:
-            dk = t.get("department", "quick")
-            dept_short = dept_labels.get(dk, "Quick").split()[0] if dept_labels.get(dk) else "Quick"
-            label = f"[{dept_short}] {t['title']}"
-            items.append(label)
-            id_map[label] = t["id"]
-        
-        sorted_items = sort_items(items, direction="vertical")
-        
-        if sorted_items != items:
-            sorted_ids = [id_map[label] for label in sorted_items]
-            save_new_order(sorted_ids, all_today_sorted)
-            st.rerun()
-        
-        # Task details with checkboxes and edit
-        st.markdown("---")
-        st.markdown("**Details & Actions**")
-        
-        # Rebuild task order based on sorted items
-        sorted_tasks = []
-        for label in sorted_items:
-            tid = id_map[label]
-            task = next((t for t in all_today_sorted if t["id"] == tid), None)
-            if task:
-                sorted_tasks.append(task)
-        
-        for task in sorted_tasks:
+        for task in all_today_sorted:
             col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
             
             with col1:
@@ -339,7 +478,7 @@ if view == "Today":
 
 elif view == "All":
     filtered = filter_tasks(open_tasks)
-    filtered_sorted = sorted(filtered, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
+    filtered_sorted = sorted(filtered, key=lambda x: (x.get("order", 999), x.get("due_date") or "9999"))
     
     if filtered_sorted:
         st.markdown('<div class="section-head">All Tasks</div>', unsafe_allow_html=True)
