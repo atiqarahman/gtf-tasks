@@ -347,6 +347,16 @@
       "notes": "",
       "done": false,
       "created": "2026-02-12T17:40:55.788081"
+    },
+    {
+      "id": "20260212175305",
+      "title": "Check Mukesh WhatsApp messages to debug issue + speak to Zoya",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-12",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T17:53:05.668365"
     }
   ]
 }
