@@ -66,7 +66,14 @@ def save_to_github(data, message="Dashboard update"):
     """Save tasks.json to GitHub"""
     token = get_github_token()
     if not token:
+        st.error("❌ GitHub token not found - changes won't persist!")
         return False
+    
+    # Get fresh SHA if we don't have one
+    if not st.session_state.get("github_sha"):
+        _, sha = load_from_github()
+        if sha:
+            st.session_state["github_sha"] = sha
     
     sha = st.session_state.get("github_sha")
     url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
@@ -84,9 +91,12 @@ def save_to_github(data, message="Dashboard update"):
         if resp.status_code in [200, 201]:
             # Update SHA for next save
             st.session_state["github_sha"] = resp.json().get("content", {}).get("sha")
+            st.toast("✅ Saved!", icon="💾")
             return True
-    except:
-        pass
+        else:
+            st.error(f"❌ Save failed: {resp.status_code}")
+    except Exception as e:
+        st.error(f"❌ Save error: {e}")
     return False
 
 def load_tasks():
@@ -107,11 +117,15 @@ def load_tasks():
 def save_tasks(data):
     """Save tasks - GitHub if available, otherwise local"""
     if st.session_state.get("using_github"):
-        if save_to_github(data):
-            return True
-    # Always save locally as backup
-    DATA_FILE.write_text(json.dumps(data, indent=2, default=str))
-    return True
+        return save_to_github(data)
+    # Local file save
+    try:
+        DATA_FILE.write_text(json.dumps(data, indent=2, default=str))
+        st.toast("✅ Saved locally!", icon="💾")
+        return True
+    except Exception as e:
+        st.error(f"❌ Local save failed: {e}")
+        return False
 
 data = load_tasks()
 tasks = data.get("tasks", [])
