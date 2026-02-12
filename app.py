@@ -344,6 +344,16 @@ with st.sidebar:
     st.link_button("🔗 Schedule + Get Link", "https://calendar.google.com/calendar/render?action=TEMPLATE&text=GTF+Meeting&details=Created+from+GTF+Command+Center", use_container_width=True)
     
     st.markdown("---")
+    
+    # T20 World Cup Scores
+    st.markdown("**🏏 T20 World Cup**")
+    st.link_button("📺 Live Scores", "https://www.espncricinfo.com/live-cricket-score", use_container_width=True)
+    
+    # Placeholder for sports book
+    st.button("📚 Atiqa's Sports Book", use_container_width=True, disabled=True)
+    st.caption("Coming soon...")
+    
+    st.markdown("---")
     st.caption("Text Zoya to manage tasks")
 
 # Header
