@@ -205,7 +205,8 @@ with st.sidebar:
     
     # Zoya suggestions section
     st.markdown("---")
-    zoya_suggestions = [t for t in open_tasks if t.get("zoya_can_help") and t.get("zoya_status") != "approved" and t.get("zoya_status") != "denied"]
+    # Keep suggestions visible until: approved & completed, OR denied, OR explicitly completed in chat
+    zoya_suggestions = [t for t in open_tasks if t.get("zoya_can_help") and t.get("zoya_status") not in ["completed", "denied"]]
     zoya_in_progress = [t for t in open_tasks if t.get("zoya_status") == "approved"]
     
     if zoya_in_progress:
@@ -243,8 +244,9 @@ with st.sidebar:
                 st.markdown("**⏰ Remind me to discuss:**")
                 remind_cols = st.columns(3)
                 with remind_cols[0]:
-                    if st.button("Today", key=f"remind_today_{zt['id']}", use_container_width=True):
-                        # Create reminder task
+                    if st.button("Today (+2h)", key=f"remind_today_{zt['id']}", use_container_width=True):
+                        # Remind in 2 hours
+                        remind_time = datetime.now() + timedelta(hours=2)
                         new_task = {
                             "id": datetime.now().strftime("%Y%m%d%H%M%S") + zt["id"][:4],
                             "title": f"💬 Chat with Zoya about: {zt['title'][:30]}",
@@ -255,17 +257,23 @@ with st.sidebar:
                             "done": False,
                             "created": datetime.now().isoformat(),
                             "is_zoya_reminder": True,
-                            "original_task_id": zt["id"]
+                            "original_task_id": zt["id"],
+                            "remind_at": remind_time.isoformat(),
+                            "remind_sent": False
                         }
                         data["tasks"].append(new_task)
+                        # Don't change zoya_status - keep it in suggestions
                         for t in data["tasks"]:
                             if t["id"] == zt["id"]:
-                                t["zoya_status"] = "remind_scheduled"
+                                t["reminder_scheduled"] = remind_time.isoformat()
                         save_tasks(data)
+                        st.toast(f"⏰ I'll remind you at {remind_time.strftime('%H:%M')}")
                         st.rerun()
                 
                 with remind_cols[1]:
-                    if st.button("Tomorrow", key=f"remind_tmrw_{zt['id']}", use_container_width=True):
+                    if st.button("Tomorrow 🌅", key=f"remind_tmrw_{zt['id']}", use_container_width=True):
+                        # Remind tomorrow at 9am
+                        tomorrow_9am = datetime.combine(today + timedelta(days=1), datetime.strptime("09:00", "%H:%M").time())
                         new_task = {
                             "id": datetime.now().strftime("%Y%m%d%H%M%S") + zt["id"][:4],
                             "title": f"💬 Chat with Zoya about: {zt['title'][:30]}",
@@ -276,18 +284,23 @@ with st.sidebar:
                             "done": False,
                             "created": datetime.now().isoformat(),
                             "is_zoya_reminder": True,
-                            "original_task_id": zt["id"]
+                            "original_task_id": zt["id"],
+                            "remind_at": tomorrow_9am.isoformat(),
+                            "remind_sent": False
                         }
                         data["tasks"].append(new_task)
                         for t in data["tasks"]:
                             if t["id"] == zt["id"]:
-                                t["zoya_status"] = "remind_scheduled"
+                                t["reminder_scheduled"] = tomorrow_9am.isoformat()
                         save_tasks(data)
+                        st.toast("⏰ I'll remind you tomorrow morning at 9am")
                         st.rerun()
                 
                 with remind_cols[2]:
                     remind_date = st.date_input("Pick", value=today, key=f"remind_date_{zt['id']}", label_visibility="collapsed")
                     if st.button("Set", key=f"remind_set_{zt['id']}", use_container_width=True):
+                        # Remind at 9am on selected date
+                        remind_9am = datetime.combine(remind_date, datetime.strptime("09:00", "%H:%M").time())
                         new_task = {
                             "id": datetime.now().strftime("%Y%m%d%H%M%S") + zt["id"][:4],
                             "title": f"💬 Chat with Zoya about: {zt['title'][:30]}",
@@ -298,13 +311,16 @@ with st.sidebar:
                             "done": False,
                             "created": datetime.now().isoformat(),
                             "is_zoya_reminder": True,
-                            "original_task_id": zt["id"]
+                            "original_task_id": zt["id"],
+                            "remind_at": remind_9am.isoformat(),
+                            "remind_sent": False
                         }
                         data["tasks"].append(new_task)
                         for t in data["tasks"]:
                             if t["id"] == zt["id"]:
-                                t["zoya_status"] = "remind_scheduled"
+                                t["reminder_scheduled"] = remind_9am.isoformat()
                         save_tasks(data)
+                        st.toast(f"⏰ I'll remind you on {remind_date.strftime('%b %d')} at 9am")
                         st.rerun()
                 
                 # Chat now button
