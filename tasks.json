@@ -46,7 +46,9 @@
       "due_date": "2026-02-14",
       "notes": "Zoya to draft",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can draft a brand partnership contract template covering exclusivity, commission rates, image rights, and terms. You can review then send to lawyer."
     },
     {
       "id": "g003",
@@ -70,13 +72,15 @@
     },
     {
       "id": "g005",
-      "title": "SKU \u2194 Google Drive image matching",
+      "title": "SKU ↔ Google Drive image matching",
       "department": "product",
       "priority": "low",
       "due_date": "2026-02-12",
       "notes": "Zoya task",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can write a script to match SKUs with images in Google Drive. Just need Drive folder access and the SKU list format."
     },
     {
       "id": "g006",
@@ -116,7 +120,9 @@
       "due_date": "2026-02-11",
       "notes": "Atiqa + Zoya",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can draft the full JD — tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve."
     },
     {
       "id": "g010",
@@ -126,7 +132,9 @@
       "due_date": "2026-02-14",
       "notes": "",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can create a LinkedIn outreach playbook — target profiles, message templates, follow-up cadence for recruiting Head of Tech."
     },
     {
       "id": "g011",
@@ -136,7 +144,9 @@
       "due_date": "2026-02-14",
       "notes": "",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can rewrite your LinkedIn headline, about section, and experience to position you as a fashion-tech founder. Share current profile and I'll draft improvements."
     },
     {
       "id": "g012",
@@ -166,7 +176,9 @@
       "due_date": "2026-02-12",
       "notes": "Separate version/strategy",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can create a deck tailored for international brands — different value prop, logistics story, market opportunity. Tell me the angle you want."
     },
     {
       "id": "g015",
@@ -226,7 +238,9 @@
       "due_date": "2026-02-11",
       "notes": "PRIORITY",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can create a professional PDF/doc with GTF's shipping requirements, expected volumes, SLA needs, and questions for shipping companies. What info should I include?"
     },
     {
       "id": "g021",
@@ -276,7 +290,9 @@
       "due_date": null,
       "notes": "",
       "done": false,
-      "created": "2026-02-12T16:00:00"
+      "created": "2026-02-12T16:00:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can draft clear SOW docs for both — deliverables, timelines, milestones, communication expectations. Tell me their roles and I'll structure it."
     },
     {
       "id": "g026",
