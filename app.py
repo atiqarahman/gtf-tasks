@@ -321,6 +321,11 @@ with st.sidebar:
         st.caption("No suggestions yet")
     
     st.markdown("---")
+    
+    # Quick actions
+    st.link_button("📹 Create Google Meet", "https://meet.google.com/new", use_container_width=True)
+    
+    st.markdown("---")
     st.caption("Text Zoya to manage tasks")
 
 # Header
