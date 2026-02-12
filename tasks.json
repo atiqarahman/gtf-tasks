@@ -387,7 +387,7 @@
     {
       "id": "20260212214059",
       "title": "Arrange pick up for Indian customer item on DHL website",
-      "department": "customs_shipping",
+      "department": "customers",
       "priority": "high",
       "due_date": "2026-02-13",
       "notes": "",
