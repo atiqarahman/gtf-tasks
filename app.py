@@ -322,8 +322,10 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Quick actions
-    st.link_button("📹 Create Google Meet", "https://meet.google.com/new", use_container_width=True)
+    # Quick actions - Google Meet
+    st.markdown("**Quick Meeting**")
+    st.link_button("📹 Start Meet Now", "https://meet.google.com/new", use_container_width=True)
+    st.link_button("🔗 Schedule + Get Link", "https://calendar.google.com/calendar/render?action=TEMPLATE&text=GTF+Meeting&details=Created+from+GTF+Command+Center", use_container_width=True)
     
     st.markdown("---")
     st.caption("Text Zoya to manage tasks")
