@@ -1,11 +1,11 @@
 """
-GTF Command Center v7
-Color tags, no emojis
+GTF Command Center v8
+Full functionality
 """
 
 import streamlit as st
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
 
 st.set_page_config(
@@ -22,6 +22,9 @@ def load_tasks():
         return json.loads(DATA_FILE.read_text())
     return {"departments": [], "department_labels": {}, "tasks": []}
 
+def save_tasks(data):
+    DATA_FILE.write_text(json.dumps(data, indent=2, default=str))
+
 data = load_tasks()
 tasks = data.get("tasks", [])
 dept_labels = data.get("department_labels", {})
@@ -29,19 +32,23 @@ today_str = date.today().isoformat()
 
 # Department colors
 dept_colors = {
-    "customers": "#8B5CF6",      # Purple
-    "customs_shipping": "#0891B2", # Teal
-    "brand_outreach": "#059669",  # Green
-    "brand_followups": "#10B981", # Emerald
-    "content": "#EC4899",         # Pink
-    "legal": "#6366F1",           # Indigo
-    "product": "#3B82F6",         # Blue
-    "business": "#F59E0B",        # Amber
-    "fundraising": "#EF4444",     # Red
-    "hiring": "#8B5CF6",          # Purple
-    "finance": "#14B8A6",         # Teal
-    "quick": "#9CA3AF"            # Gray
+    "customers": "#8B5CF6",
+    "customs_shipping": "#0891B2",
+    "brand_outreach": "#059669",
+    "brand_followups": "#10B981",
+    "content": "#EC4899",
+    "legal": "#6366F1",
+    "product": "#3B82F6",
+    "business": "#F59E0B",
+    "fundraising": "#EF4444",
+    "hiring": "#8B5CF6",
+    "finance": "#14B8A6",
+    "quick": "#9CA3AF"
 }
+
+# Session state
+if "selected_dept" not in st.session_state:
+    st.session_state.selected_dept = None
 
 # Styling
 st.markdown("""
@@ -70,21 +77,13 @@ st.markdown("""
     
     section[data-testid="stSidebar"], section[data-testid="stSidebar"] > div {
         background-color: var(--white) !important;
-        border-right: 1px solid var(--light-gray) !important;
     }
     
     #MainMenu, footer, header, .stDeployButton { display: none !important; }
     
-    h1, h2, h3 {
-        font-family: 'Playfair Display', serif !important;
-        color: var(--charcoal) !important;
-    }
+    h1, h2, h3 { font-family: 'Playfair Display', serif !important; color: var(--charcoal) !important; }
+    p, span, div, label, li { font-family: 'DM Sans', sans-serif !important; }
     
-    p, span, div, label, li {
-        font-family: 'DM Sans', sans-serif !important;
-    }
-    
-    /* Stats */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -117,29 +116,6 @@ st.markdown("""
         margin-top: 0.4rem;
     }
     
-    /* Progress */
-    .progress-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.7rem;
-        color: var(--gray);
-        margin-bottom: 0.4rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .progress-track {
-        height: 2px;
-        background: var(--light-gray);
-        margin-bottom: 1.5rem;
-    }
-    
-    .progress-fill {
-        height: 100%;
-        background: var(--gold);
-    }
-    
-    /* Section */
     .section-head {
         font-family: 'DM Sans', sans-serif;
         font-size: 0.7rem;
@@ -147,59 +123,9 @@ st.markdown("""
         color: var(--gray);
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        margin: 2rem 0 1rem 0;
+        margin: 1.5rem 0 1rem 0;
         padding-bottom: 0.6rem;
         border-bottom: 1px solid var(--light-gray);
-    }
-    
-    /* Task */
-    .task-card {
-        background: var(--white);
-        border: 1px solid var(--light-gray);
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.5rem;
-        display: flex;
-        gap: 0.75rem;
-        align-items: flex-start;
-    }
-    
-    .task-priority {
-        width: 3px;
-        min-height: 32px;
-        flex-shrink: 0;
-    }
-    
-    .priority-high { background: #c45c5c; }
-    .priority-medium { background: #c9a87c; }
-    .priority-low { background: #d1d5db; }
-    
-    .task-body { flex: 1; }
-    
-    .task-title {
-        font-family: 'DM Sans', sans-serif;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--charcoal);
-        line-height: 1.4;
-        margin-bottom: 0.3rem;
-    }
-    
-    .task-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-    
-    .task-due {
-        font-family: 'DM Sans', sans-serif;
-        font-size: 0.7rem;
-        color: var(--gray);
-    }
-    
-    .task-due.overdue {
-        color: var(--red);
-        font-weight: 500;
     }
     
     .dept-tag {
@@ -211,15 +137,20 @@ st.markdown("""
         color: white;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        display: inline-block;
     }
     
-    /* Tabs */
-    .stRadio > div {
-        flex-direction: row !important;
-        gap: 0 !important;
-        background: transparent !important;
+    .sb-title {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin: 1.5rem 0 0.6rem 0;
     }
     
+    .stRadio > div { flex-direction: row !important; gap: 0 !important; }
     .stRadio > div > label {
         font-family: 'DM Sans', sans-serif !important;
         font-size: 0.7rem !important;
@@ -234,51 +165,11 @@ st.markdown("""
         color: var(--gray) !important;
         margin: 0 !important;
     }
-    
-    .stRadio > div > label:last-child {
-        border-right: 1px solid var(--light-gray) !important;
-    }
-    
+    .stRadio > div > label:last-child { border-right: 1px solid var(--light-gray) !important; }
     .stRadio > div > label[data-checked="true"] {
         background: var(--charcoal) !important;
         color: var(--white) !important;
         border-color: var(--charcoal) !important;
-    }
-    
-    /* Expander */
-    .stExpander {
-        border: 1px solid var(--light-gray) !important;
-        border-radius: 0 !important;
-        background: var(--white) !important;
-        margin-bottom: 0.4rem !important;
-    }
-    
-    /* Sidebar */
-    .sb-title {
-        font-family: 'DM Sans', sans-serif;
-        font-size: 0.6rem;
-        font-weight: 600;
-        color: var(--gray);
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin: 1.5rem 0 0.6rem 0;
-    }
-    
-    .sb-row {
-        font-family: 'DM Sans', sans-serif;
-        font-size: 0.8rem;
-        color: var(--charcoal);
-        padding: 0.25rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .sb-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -289,7 +180,6 @@ done_tasks = [t for t in tasks if t.get("done")]
 today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
 overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
 high_p = [t for t in open_tasks if t.get("priority") == "high"]
-progress = (len(done_tasks) / len(tasks) * 100) if tasks else 0
 
 # Sidebar
 with st.sidebar:
@@ -298,16 +188,26 @@ with st.sidebar:
         st.image(str(logo_path), width=140)
     
     st.markdown('<div class="sb-title">Overview</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sb-row">Open: <strong>{len(open_tasks)}</strong></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sb-row">Today: <strong>{len(today_tasks)}</strong></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sb-row">Overdue: <strong>{len(overdue)}</strong></div>', unsafe_allow_html=True)
+    st.metric("Open", len(open_tasks))
+    st.metric("Today", len(today_tasks))
+    st.metric("Overdue", len(overdue))
     
     st.markdown('<div class="sb-title">Departments</div>', unsafe_allow_html=True)
+    
+    # All departments button
+    if st.button("All Departments", use_container_width=True, type="secondary" if st.session_state.selected_dept else "primary"):
+        st.session_state.selected_dept = None
+        st.rerun()
+    
+    # Department buttons
     for dk, dn in dept_labels.items():
         c = len([t for t in open_tasks if t.get("department") == dk])
         if c > 0:
             color = dept_colors.get(dk, "#9CA3AF")
-            st.markdown(f'<div class="sb-row"><span class="sb-dot" style="background:{color}"></span>{dn}: <strong>{c}</strong></div>', unsafe_allow_html=True)
+            btn_type = "primary" if st.session_state.selected_dept == dk else "secondary"
+            if st.button(f"{dn} ({c})", key=f"dept_{dk}", use_container_width=True, type=btn_type):
+                st.session_state.selected_dept = dk
+                st.rerun()
     
     st.markdown("---")
     st.caption("Text Zoya to manage tasks")
@@ -316,112 +216,145 @@ with st.sidebar:
 st.markdown("## Command Center")
 st.caption(datetime.now().strftime("%A, %B %d, %Y"))
 
-# Progress
-st.markdown(f"""
-<div class="progress-row">
-    <span>Progress</span>
-    <span>{len(done_tasks)} / {len(tasks)}</span>
-</div>
-<div class="progress-track">
-    <div class="progress-fill" style="width:{progress}%"></div>
-</div>
-""", unsafe_allow_html=True)
-
-# Stats
+# Stats row
 st.markdown(f"""
 <div class="stats-grid">
-    <div class="stat-box">
-        <div class="stat-num">{len(open_tasks)}</div>
-        <div class="stat-label">Open</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-num">{len(today_tasks)}</div>
-        <div class="stat-label">Today</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-num {'red' if overdue else ''}">{len(overdue)}</div>
-        <div class="stat-label">Overdue</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-num">{len(high_p)}</div>
-        <div class="stat-label">Priority</div>
-    </div>
+    <div class="stat-box"><div class="stat-num">{len(open_tasks)}</div><div class="stat-label">Open</div></div>
+    <div class="stat-box"><div class="stat-num">{len(today_tasks)}</div><div class="stat-label">Today</div></div>
+    <div class="stat-box"><div class="stat-num {'red' if overdue else ''}">{len(overdue)}</div><div class="stat-label">Overdue</div></div>
+    <div class="stat-box"><div class="stat-num">{len(high_p)}</div><div class="stat-label">Priority</div></div>
 </div>
 """, unsafe_allow_html=True)
 
-# Tabs
-view = st.radio("", ["Today", "All", "Department", "Done"], horizontal=True, label_visibility="collapsed")
+# Filters
+col1, col2 = st.columns([2, 1])
+with col1:
+    view = st.radio("", ["Today", "All", "Done"], horizontal=True, label_visibility="collapsed")
+with col2:
+    sort_by = st.selectbox("Sort by", ["Due Date", "Priority", "Department"], label_visibility="collapsed")
 
-def show_task(task, show_dept=True):
-    p = task.get("priority", "medium")
-    due = task.get("due_date")
+# Filter by selected department
+def filter_tasks(task_list):
+    if st.session_state.selected_dept:
+        return [t for t in task_list if t.get("department") == st.session_state.selected_dept]
+    return task_list
+
+def sort_tasks(task_list):
+    if sort_by == "Due Date":
+        return sorted(task_list, key=lambda x: (x.get("due_date") or "9999", x.get("priority") != "high"))
+    elif sort_by == "Priority":
+        priority_order = {"high": 0, "medium": 1, "low": 2}
+        return sorted(task_list, key=lambda x: (priority_order.get(x.get("priority", "medium"), 1), x.get("due_date") or "9999"))
+    else:  # Department
+        return sorted(task_list, key=lambda x: (x.get("department", "quick"), x.get("due_date") or "9999"))
+
+def render_task(task, idx):
     dk = task.get("department", "quick")
     dept = dept_labels.get(dk, "Quick")
     color = dept_colors.get(dk, "#9CA3AF")
+    due = task.get("due_date")
+    priority = task.get("priority", "medium")
+    notes = task.get("notes", "")
+    is_done = task.get("done", False)
     
-    due_html = ""
+    # Due date display
+    due_display = ""
     if due:
         if due < today_str:
-            due_html = '<span class="task-due overdue">Overdue</span>'
+            due_display = f"⚠️ Overdue ({due})"
         elif due == today_str:
-            due_html = '<span class="task-due">Today</span>'
+            due_display = "📍 Today"
         else:
-            due_html = f'<span class="task-due">{due}</span>'
+            due_display = f"📅 {due}"
     
-    dept_html = f'<span class="dept-tag" style="background:{color}">{dept}</span>' if show_dept else ''
-    
-    st.markdown(f"""
-    <div class="task-card">
-        <div class="task-priority priority-{p}"></div>
-        <div class="task-body">
-            <div class="task-title">{task['title']}</div>
-            <div class="task-info">
-                {due_html}
-                {dept_html}
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container():
+        col1, col2 = st.columns([0.05, 0.95])
+        
+        with col1:
+            # Checkbox for completion
+            done = st.checkbox("", value=is_done, key=f"done_{task['id']}", label_visibility="collapsed")
+            if done != is_done:
+                for t in data["tasks"]:
+                    if t["id"] == task["id"]:
+                        t["done"] = done
+                        if done:
+                            t["completed_date"] = today_str
+                save_tasks(data)
+                st.rerun()
+        
+        with col2:
+            # Task header
+            title_style = "text-decoration: line-through; color: #999;" if is_done else ""
+            st.markdown(f"**<span style='{title_style}'>{task['title']}</span>**", unsafe_allow_html=True)
+            
+            # Tags row
+            st.markdown(f"""
+            <span class="dept-tag" style="background:{color}">{dept}</span>
+            <span style="font-size:0.75rem; color:#666; margin-left:8px;">{due_display}</span>
+            <span style="font-size:0.7rem; color:#999; margin-left:8px;">Priority: {priority}</span>
+            """, unsafe_allow_html=True)
+            
+            # Notes display
+            if notes:
+                st.caption(f"📝 {notes}")
+            
+            # Edit section
+            with st.expander("Edit", expanded=False):
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    new_due = st.date_input("Due date", value=date.fromisoformat(due) if due else None, key=f"due_{task['id']}")
+                with col_b:
+                    new_priority = st.selectbox("Priority", ["high", "medium", "low"], 
+                                                index=["high", "medium", "low"].index(priority),
+                                                key=f"pri_{task['id']}")
+                new_notes = st.text_area("Notes", value=notes, key=f"notes_{task['id']}", height=68)
+                
+                if st.button("Save", key=f"save_{task['id']}"):
+                    for t in data["tasks"]:
+                        if t["id"] == task["id"]:
+                            t["due_date"] = new_due.isoformat() if new_due else None
+                            t["priority"] = new_priority
+                            t["notes"] = new_notes
+                    save_tasks(data)
+                    st.success("Saved!")
+                    st.rerun()
+        
+        st.markdown("---")
+
+# Show selected department filter
+if st.session_state.selected_dept:
+    dept_name = dept_labels.get(st.session_state.selected_dept, "")
+    st.info(f"Filtered by: **{dept_name}** — Click 'All Departments' in sidebar to clear")
 
 # Views
 if view == "Today":
-    if overdue:
+    filtered_overdue = filter_tasks(overdue)
+    filtered_today = filter_tasks(today_tasks)
+    
+    if filtered_overdue:
         st.markdown('<div class="section-head">Overdue</div>', unsafe_allow_html=True)
-        for t in sorted(overdue, key=lambda x: x.get("priority") != "high"):
-            show_task(t)
+        for i, t in enumerate(sort_tasks(filtered_overdue)):
+            render_task(t, i)
     
-    if today_tasks:
+    if filtered_today:
         st.markdown('<div class="section-head">Due Today</div>', unsafe_allow_html=True)
-        for t in sorted(today_tasks, key=lambda x: x.get("priority") != "high"):
-            show_task(t)
+        for i, t in enumerate(sort_tasks(filtered_today)):
+            render_task(t, i + 100)
     
-    upcoming = [t for t in open_tasks if t.get("due_date") and t.get("due_date") > today_str][:5]
-    if upcoming:
-        st.markdown('<div class="section-head">Coming Up</div>', unsafe_allow_html=True)
-        for t in sorted(upcoming, key=lambda x: x.get("due_date")):
-            show_task(t)
-    
-    if not overdue and not today_tasks:
+    if not filtered_overdue and not filtered_today:
         st.info("Nothing due today")
 
 elif view == "All":
+    filtered = filter_tasks(open_tasks)
     st.markdown('<div class="section-head">All Tasks</div>', unsafe_allow_html=True)
-    for t in sorted(open_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
-        show_task(t)
-
-elif view == "Department":
-    st.markdown('<div class="section-head">By Department</div>', unsafe_allow_html=True)
-    for dk, dn in dept_labels.items():
-        dept_tasks = [t for t in open_tasks if t.get("department") == dk]
-        if dept_tasks:
-            with st.expander(f"{dn} ({len(dept_tasks)})"):
-                for t in sorted(dept_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
-                    show_task(t, show_dept=False)
+    for i, t in enumerate(sort_tasks(filtered)):
+        render_task(t, i + 200)
 
 elif view == "Done":
-    if done_tasks:
+    filtered = filter_tasks(done_tasks)
+    if filtered:
         st.markdown('<div class="section-head">Completed</div>', unsafe_allow_html=True)
-        for t in sorted(done_tasks, key=lambda x: x.get("completed_date", ""), reverse=True)[:30]:
-            show_task(t)
+        for i, t in enumerate(sort_tasks(filtered)[:30]):
+            render_task(t, i + 300)
     else:
-        st.info("No completed tasks yet")
+        st.info("No completed tasks")
