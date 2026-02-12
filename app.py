@@ -81,31 +81,34 @@ st.markdown("""
     
     #MainMenu, footer, header, .stDeployButton { display: none !important; }
     
-    /* Override sortables brown/tan color */
-    div[data-testid="stVerticalBlock"] .sortable-item,
-    .sortable-item,
-    [class*="sortable"] > div,
-    div[draggable="true"] {
+    /* Clean popover trigger buttons */
+    [data-testid="stPopover"] > button,
+    button[kind="secondary"] {
         background: white !important;
         border: 1px solid #e0e0e0 !important;
         border-radius: 8px !important;
-        padding: 10px 12px !important;
+        padding: 8px 12px !important;
         margin-bottom: 6px !important;
         font-size: 0.8rem !important;
         color: #333 !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+        transition: all 0.15s ease !important;
     }
     
-    div[draggable="true"]:hover {
+    [data-testid="stPopover"] > button:hover,
+    button[kind="secondary"]:hover {
         border-color: #3B82F6 !important;
-        box-shadow: 0 2px 6px rgba(59,130,246,0.15) !important;
+        box-shadow: 0 2px 8px rgba(59,130,246,0.15) !important;
+        background: #f8fafc !important;
     }
     
-    /* Sortable container headers */
-    .sortable-container-header {
-        font-weight: 600 !important;
-        color: var(--charcoal) !important;
-        background: transparent !important;
+    /* Popover content styling */
+    [data-testid="stPopoverBody"] {
+        padding: 12px !important;
+    }
+    
+    [data-testid="stPopoverBody"] button {
+        margin-top: 4px !important;
     }
     
     .stats-row {
