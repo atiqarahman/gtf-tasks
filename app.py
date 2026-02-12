@@ -1,11 +1,12 @@
 """
-GTF Command Center v18
-With live cricket scores
+GTF Command Center v19
+With GitHub-backed persistence
 """
 
 import streamlit as st
 import json
 import requests
+import base64
 from datetime import datetime, date, timedelta
 from pathlib import Path
 from streamlit_sortables import sort_items
@@ -31,13 +32,86 @@ st.set_page_config(
 
 DATA_FILE = Path(__file__).parent / "tasks.json"
 
+# GitHub backend config
+GITHUB_REPO = "atiqarahman/gtf-tasks"
+GITHUB_FILE = "tasks.json"
+
+def get_github_token():
+    """Get GitHub token from Streamlit secrets"""
+    try:
+        return st.secrets["GITHUB_TOKEN"]
+    except:
+        return None
+
+def load_from_github():
+    """Load tasks.json from GitHub"""
+    token = get_github_token()
+    if not token:
+        return None, None
+    
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
+    headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+    
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            content = base64.b64decode(data["content"]).decode("utf-8")
+            return json.loads(content), data["sha"]
+    except:
+        pass
+    return None, None
+
+def save_to_github(data, message="Dashboard update"):
+    """Save tasks.json to GitHub"""
+    token = get_github_token()
+    if not token:
+        return False
+    
+    sha = st.session_state.get("github_sha")
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE}"
+    headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+    
+    content = json.dumps(data, indent=2, default=str)
+    encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+    
+    payload = {"message": message, "content": encoded, "branch": "main"}
+    if sha:
+        payload["sha"] = sha
+    
+    try:
+        resp = requests.put(url, headers=headers, json=payload, timeout=10)
+        if resp.status_code in [200, 201]:
+            # Update SHA for next save
+            st.session_state["github_sha"] = resp.json().get("content", {}).get("sha")
+            return True
+    except:
+        pass
+    return False
+
 def load_tasks():
+    """Load tasks - GitHub first, then local file"""
+    # Try GitHub first (for cloud deployment)
+    github_data, sha = load_from_github()
+    if github_data:
+        st.session_state["github_sha"] = sha
+        st.session_state["using_github"] = True
+        return github_data
+    
+    # Fall back to local file
+    st.session_state["using_github"] = False
     if DATA_FILE.exists():
         return json.loads(DATA_FILE.read_text())
     return {"departments": [], "department_labels": {}, "tasks": []}
 
 def save_tasks(data):
+    """Save tasks - GitHub if available, otherwise local"""
+    if st.session_state.get("using_github"):
+        if save_to_github(data):
+            return True
+    # Always save locally as backup
     DATA_FILE.write_text(json.dumps(data, indent=2, default=str))
+    return True
 
 data = load_tasks()
 tasks = data.get("tasks", [])
