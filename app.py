@@ -261,11 +261,11 @@ def render_task(task, idx):
     due_display = ""
     if due:
         if due < today_str:
-            due_display = f"⚠️ Overdue ({due})"
+            due_display = f"Overdue ({due})"
         elif due == today_str:
-            due_display = "📍 Today"
+            due_display = "Today"
         else:
-            due_display = f"📅 {due}"
+            due_display = f"{due}"
     
     with st.container():
         col1, col2 = st.columns([0.05, 0.95])
@@ -296,7 +296,7 @@ def render_task(task, idx):
             
             # Notes display
             if notes:
-                st.caption(f"📝 {notes}")
+                st.caption(f"{notes}")
             
             # Edit section
             with st.expander("Edit", expanded=False):
