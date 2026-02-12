@@ -199,91 +199,116 @@ if st.session_state.selected_dept:
     st.info(f"Filtered: {dept_labels.get(st.session_state.selected_dept, '')}")
 
 if st.session_state.show_calendar:
-    # Calendar view with colored task cards
+    # Calendar view with drag-and-drop between days
     days = [(today + timedelta(days=i-1)) for i in range(7)]
-    cols = st.columns(7)
     
-    for i, d in enumerate(days):
+    # Department emoji mapping for visual distinction
+    dept_emoji = {
+        "customers": "🟣",
+        "customs_shipping": "🔵", 
+        "brand_outreach": "🟢",
+        "brand_followups": "🟩",
+        "content": "🩷",
+        "legal": "🟤",
+        "product": "🔷",
+        "business": "🟠",
+        "fundraising": "🔴",
+        "hiring": "🟣",
+        "finance": "🩵",
+        "quick": "⚪"
+    }
+    
+    # Build multi-container structure
+    task_id_map = {}  # display -> task id
+    task_date_map = {}  # display -> original date
+    
+    multi_items = []
+    for d in days:
         d_str = d.isoformat()
         day_tasks = [t for t in filter_tasks(open_tasks) if t.get("due_date") == d_str]
         day_tasks = sorted(day_tasks, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
         
         day_name = d.strftime("%a")
         if d == today:
-            day_name = "📍 TODAY"
+            day_name = f"📍 TODAY {d.day}"
         elif d == today - timedelta(days=1):
-            day_name = "Yesterday"  
+            day_name = f"Yesterday {d.day}"
         elif d == today + timedelta(days=1):
-            day_name = "Tomorrow"
+            day_name = f"Tomorrow {d.day}"
         else:
             day_name = f"{d.strftime('%a')} {d.day}"
         
-        with cols[i]:
-            title_class = "day-title today" if d == today else "day-title"
-            st.markdown(f'<div class="{title_class}">{day_name}<br><span style="font-size:1.2rem">{d.day}</span></div>', unsafe_allow_html=True)
-            
-            # Render colored task cards
-            if day_tasks:
-                cards_html = ""
-                for t in day_tasks:
-                    dk = t.get("department", "quick")
-                    color = dept_colors.get(dk, "#6B7280")
-                    label = t["title"][:20] + "..." if len(t["title"]) > 20 else t["title"]
-                    cards_html += f'<div style="background:{color}; color:white; padding:8px 10px; border-radius:6px; margin-bottom:6px; font-size:0.75rem; font-weight:500;">{label}</div>'
-                st.markdown(cards_html, unsafe_allow_html=True)
-            else:
-                st.caption("—")
+        items = []
+        for t in day_tasks:
+            dk = t.get("department", "quick")
+            emoji = dept_emoji.get(dk, "⚪")
+            label = t["title"][:22] + "..." if len(t["title"]) > 22 else t["title"]
+            display = f"{emoji} {label}"
+            items.append(display)
+            task_id_map[display] = t["id"]
+            task_date_map[display] = d_str
+        
+        multi_items.append({
+            "header": day_name,
+            "items": items
+        })
     
-    # Reschedule tool
-    st.markdown("---")
-    st.markdown("**Move Task Between Days**")
-    c1, c2, c3 = st.columns([3, 2, 1])
+    # Drag-and-drop sortable
+    sorted_multi = sort_items(multi_items, multi_containers=True, direction="vertical")
     
-    with c1:
-        task_opts = {f"{t['title'][:40]}": t["id"] for t in filter_tasks(open_tasks)}
-        selected_title = st.selectbox("Select task", list(task_opts.keys()), label_visibility="collapsed")
-    with c2:
-        day_opts = {}
-        for d in days:
-            if d == today:
-                day_opts["Today"] = d.isoformat()
-            elif d == today + timedelta(days=1):
-                day_opts["Tomorrow"] = d.isoformat()
-            else:
-                day_opts[d.strftime("%a %d")] = d.isoformat()
-        target_day = st.selectbox("Move to", list(day_opts.keys()), label_visibility="collapsed")
-    with c3:
-        if st.button("Move →", use_container_width=True):
-            tid = task_opts.get(selected_title)
-            new_date = day_opts.get(target_day)
-            if tid and new_date:
+    # Detect and save changes
+    changes_made = False
+    for i, container in enumerate(sorted_multi):
+        new_date = days[i].isoformat()
+        for order_idx, display in enumerate(container.get("items", [])):
+            tid = task_id_map.get(display)
+            if tid:
                 for t in data["tasks"]:
                     if t["id"] == tid:
-                        t["due_date"] = new_date
-                save_tasks(data)
-                st.rerun()
+                        if t.get("due_date") != new_date:
+                            t["due_date"] = new_date
+                            changes_made = True
+                        if t.get("order") != order_idx:
+                            t["order"] = order_idx
+                            changes_made = True
+    
+    if changes_made:
+        save_tasks(data)
+        st.rerun()
     
     # Color legend
     st.markdown("---")
-    legend_html = "<div style='display:flex; flex-wrap:wrap; gap:8px; align-items:center;'><span style='font-size:0.75rem; color:#888;'>Departments:</span>"
+    legend_html = "<div style='display:flex; flex-wrap:wrap; gap:10px; align-items:center;'>"
     for dk, dn in dept_labels.items():
+        emoji = dept_emoji.get(dk, "⚪")
         color = dept_colors.get(dk, "#6B7280")
         count = len([t for t in open_tasks if t.get("department") == dk])
         if count > 0:
-            legend_html += f"<span style='background:{color}; color:white; padding:3px 8px; border-radius:4px; font-size:0.7rem;'>{dn}</span>"
+            legend_html += f"<span style='font-size:0.8rem;'>{emoji} {dn}</span>"
     legend_html += "</div>"
     st.markdown(legend_html, unsafe_allow_html=True)
     
-    # Overdue section with colored cards
+    # Overdue section
     overdue_filtered = filter_tasks(overdue)
     if overdue_filtered:
         st.markdown("---")
-        st.markdown("**⚠️ Overdue Tasks**")
+        st.markdown("**⚠️ Overdue** — drag these into a day above")
+        # Add overdue as a container
+        overdue_items = []
+        for t in overdue_filtered[:12]:
+            dk = t.get("department", "quick")
+            emoji = dept_emoji.get(dk, "⚪")
+            label = t["title"][:25] + "..." if len(t["title"]) > 25 else t["title"]
+            display = f"{emoji} {label}"
+            overdue_items.append(display)
+            task_id_map[display] = t["id"]
+        
         overdue_html = "<div style='display:flex; flex-wrap:wrap; gap:6px;'>"
         for t in overdue_filtered[:15]:
             dk = t.get("department", "quick")
             color = dept_colors.get(dk, "#6B7280")
-            overdue_html += f'<span style="background:{color}; color:white; padding:6px 10px; border-radius:6px; font-size:0.75rem;">{t["title"][:30]}</span>'
+            emoji = dept_emoji.get(dk, "⚪")
+            overdue_html += f'<span style="background:{color}; color:white; padding:6px 10px; border-radius:6px; font-size:0.75rem;">{emoji} {t["title"][:28]}</span>'
         overdue_html += "</div>"
         st.markdown(overdue_html, unsafe_allow_html=True)
 
