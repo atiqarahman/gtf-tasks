@@ -1,19 +1,19 @@
 """
-GTF Command Center v15
-Calendar view with expand/collapse
+GTF Command Center v16
+Drag tasks between calendar days
 """
 
 import streamlit as st
 import json
 from datetime import datetime, date, timedelta
 from pathlib import Path
-from calendar import monthcalendar, month_name
+from streamlit_sortables import sort_items
 
 st.set_page_config(
     page_title="GTF Command Center",
     page_icon="✨",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 DATA_FILE = Path(__file__).parent / "tasks.json"
@@ -29,8 +29,8 @@ def save_tasks(data):
 data = load_tasks()
 tasks = data.get("tasks", [])
 dept_labels = data.get("department_labels", {})
-today_str = date.today().isoformat()
 today = date.today()
+today_str = today.isoformat()
 
 # Department colors
 dept_colors = {
@@ -48,10 +48,10 @@ dept_colors = {
     "quick": "#6B7280"
 }
 
-if "selected_dept" not in st.session_state:
-    st.session_state.selected_dept = None
 if "show_calendar" not in st.session_state:
     st.session_state.show_calendar = False
+if "expanded_day" not in st.session_state:
+    st.session_state.expanded_day = None
 
 # Styling
 st.markdown("""
@@ -71,151 +71,91 @@ st.markdown("""
     
     .main .block-container {
         background-color: var(--cream) !important;
-        padding: 2rem 3rem !important;
-        max-width: 1400px !important;
+        padding: 1.5rem 2rem !important;
+        max-width: 100% !important;
     }
     
-    section[data-testid="stSidebar"], section[data-testid="stSidebar"] > div {
-        background-color: var(--white) !important;
-    }
-    
+    section[data-testid="stSidebar"] { display: none !important; }
     #MainMenu, footer, header, .stDeployButton { display: none !important; }
     
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+    .stats-row {
+        display: flex;
         gap: 1rem;
-        margin: 1.5rem 0 2rem 0;
+        margin-bottom: 1.5rem;
     }
     
     .stat-box {
         background: var(--white);
         border: 1px solid var(--light-gray);
-        padding: 1.25rem;
+        padding: 1rem 1.5rem;
         text-align: center;
+        flex: 1;
     }
     
-    .stat-num { font-size: 2rem; font-weight: 600; color: var(--charcoal); }
+    .stat-num { font-size: 1.75rem; font-weight: 600; color: var(--charcoal); }
     .stat-num.red { color: var(--red); }
-    .stat-label { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.4rem; }
+    .stat-label { font-size: 0.65rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+    
+    .day-column {
+        background: var(--white);
+        border: 1px solid var(--light-gray);
+        border-radius: 8px;
+        padding: 0.75rem;
+        min-height: 200px;
+    }
+    
+    .day-header {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--charcoal);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .day-header.today {
+        color: var(--red);
+    }
+    
+    .day-date {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .task-chip {
+        padding: 6px 10px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        font-size: 0.75rem;
+        color: white;
+        cursor: grab;
+    }
     
     .section-head {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         color: var(--gray);
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin: 1.5rem 0 1rem 0;
-        padding-bottom: 0.6rem;
-        border-bottom: 1px solid var(--light-gray);
+        margin: 1.5rem 0 0.75rem 0;
     }
     
     .task-card {
         background: var(--white);
-        border-radius: 8px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.5rem;
-        border-left: 4px solid #ccc;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.4rem;
+        border-left: 3px solid #ccc;
     }
     
-    .task-title { font-size: 0.95rem; font-weight: 500; color: var(--charcoal); margin-bottom: 0.4rem; }
-    .task-meta { font-size: 0.75rem; color: var(--gray); display: flex; gap: 1rem; align-items: center; }
-    .task-dept { font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; }
-    .task-due.overdue { color: var(--red); font-weight: 600; }
-    
-    /* Calendar styles */
-    .calendar-container {
-        background: var(--white);
-        border: 1px solid var(--light-gray);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    
-    .calendar-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--charcoal);
-    }
-    
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 2px;
-    }
-    
-    .calendar-day-header {
-        text-align: center;
+    .expand-btn {
         font-size: 0.7rem;
-        font-weight: 600;
         color: var(--gray);
-        text-transform: uppercase;
-        padding: 0.5rem;
-    }
-    
-    .calendar-day {
-        min-height: 100px;
-        background: var(--cream);
-        border: 1px solid var(--light-gray);
-        padding: 0.5rem;
-        vertical-align: top;
-    }
-    
-    .calendar-day.today {
-        background: #FEF3C7;
-    }
-    
-    .calendar-day.other-month {
-        background: #f5f5f5;
-        opacity: 0.5;
-    }
-    
-    .calendar-date {
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--charcoal);
-        margin-bottom: 0.5rem;
-    }
-    
-    .calendar-date.today {
-        background: var(--red);
-        color: white;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .calendar-task {
-        font-size: 0.7rem;
-        padding: 3px 6px;
+        cursor: pointer;
+        padding: 4px 8px;
+        background: var(--light-gray);
         border-radius: 4px;
-        margin-bottom: 3px;
-        color: white;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        cursor: pointer;
-    }
-    
-    .calendar-task:hover {
-        opacity: 0.8;
-    }
-    
-    .calendar-more {
-        font-size: 0.65rem;
-        color: var(--gray);
-        cursor: pointer;
+        margin-top: 4px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -225,305 +165,191 @@ open_tasks = [t for t in tasks if not t.get("done")]
 done_tasks = [t for t in tasks if t.get("done")]
 today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
 overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
-high_p = [t for t in open_tasks if t.get("priority") == "high"]
 
-def filter_tasks(task_list):
-    if st.session_state.selected_dept:
-        return [t for t in task_list if t.get("department") == st.session_state.selected_dept]
-    return task_list
-
-# Sidebar
-with st.sidebar:
-    logo_path = Path(__file__).parent / "logo.png"
-    if logo_path.exists():
-        st.image(str(logo_path), width=140)
-    
-    st.markdown("**Overview**")
-    st.write(f"Open: {len(open_tasks)}")
-    st.write(f"Today: {len(today_tasks)}")
-    st.write(f"Overdue: {len(overdue)}")
-    
-    st.markdown("---")
-    st.markdown("**Departments**")
-    
-    if st.button("All", use_container_width=True):
-        st.session_state.selected_dept = None
-        st.rerun()
-    
-    for dk, dn in dept_labels.items():
-        c = len([t for t in open_tasks if t.get("department") == dk])
-        if c > 0:
-            if st.button(f"{dn} ({c})", key=f"dept_{dk}", use_container_width=True):
-                st.session_state.selected_dept = dk
-                st.rerun()
-    
-    st.markdown("---")
-    st.caption("Text Zoya to manage tasks")
-
-# Main
-st.title("Command Center")
-st.caption(datetime.now().strftime("%A, %B %d, %Y"))
-
-# Stats row
-st.markdown(f"""
-<div class="stats-grid">
-    <div class="stat-box"><div class="stat-num">{len(open_tasks)}</div><div class="stat-label">Open</div></div>
-    <div class="stat-box"><div class="stat-num">{len(today_tasks)}</div><div class="stat-label">Today</div></div>
-    <div class="stat-box"><div class="stat-num {'red' if overdue else ''}">{len(overdue)}</div><div class="stat-label">Overdue</div></div>
-    <div class="stat-box"><div class="stat-num">{len(high_p)}</div><div class="stat-label">Priority</div></div>
-</div>
-""", unsafe_allow_html=True)
-
-# Calendar toggle button
-col1, col2, col3 = st.columns([1, 1, 1])
+# Header
+col1, col2 = st.columns([3, 1])
 with col1:
-    if st.button("📅 Expand Calendar View" if not st.session_state.show_calendar else "📅 Collapse Calendar", use_container_width=True):
+    st.markdown("## GTF Command Center")
+with col2:
+    if st.button("📅 Calendar View" if not st.session_state.show_calendar else "📋 List View", use_container_width=True):
         st.session_state.show_calendar = not st.session_state.show_calendar
         st.rerun()
 
-# Calendar View
+# Stats
+st.markdown(f"""
+<div class="stats-row">
+    <div class="stat-box"><div class="stat-num">{len(open_tasks)}</div><div class="stat-label">Open</div></div>
+    <div class="stat-box"><div class="stat-num">{len(today_tasks)}</div><div class="stat-label">Today</div></div>
+    <div class="stat-box"><div class="stat-num {'red' if overdue else ''}">{len(overdue)}</div><div class="stat-label">Overdue</div></div>
+    <div class="stat-box"><div class="stat-num">{len(done_tasks)}</div><div class="stat-label">Done</div></div>
+</div>
+""", unsafe_allow_html=True)
+
 if st.session_state.show_calendar:
-    st.markdown("---")
+    # Calendar drag-and-drop view
+    st.markdown("**Drag tasks between days to reschedule**")
     
-    # Get tasks organized by date
-    tasks_by_date = {}
-    for t in open_tasks:
-        due = t.get("due_date")
+    # Show 7 days starting from today - 2
+    start_date = today - timedelta(days=2)
+    days = [(start_date + timedelta(days=i)) for i in range(7)]
+    
+    # Build containers for each day
+    day_containers = {}
+    task_id_map = {}  # Map display text to task id
+    
+    for d in days:
+        d_str = d.isoformat()
+        day_tasks = [t for t in open_tasks if t.get("due_date") == d_str]
+        day_tasks = sorted(day_tasks, key=lambda x: x.get("order", 999))
+        
+        items = []
+        for t in day_tasks:
+            dk = t.get("department", "quick")
+            # Short label for dragging
+            label = t["title"][:40] + ("..." if len(t["title"]) > 40 else "")
+            items.append(label)
+            task_id_map[label] = t["id"]
+        
+        day_name = d.strftime("%a")
+        if d == today:
+            day_name = "Today"
+        elif d == today - timedelta(days=1):
+            day_name = "Yesterday"
+        elif d == today + timedelta(days=1):
+            day_name = "Tomorrow"
+        
+        day_containers[f"{day_name} {d.day}"] = items
+    
+    # Sort with multi-container
+    sorted_containers = sort_items(day_containers, multi_containers=True, direction="vertical")
+    
+    # Check for changes and update due dates
+    container_to_date = {}
+    for i, d in enumerate(days):
+        day_name = d.strftime("%a")
+        if d == today:
+            day_name = "Today"
+        elif d == today - timedelta(days=1):
+            day_name = "Yesterday"
+        elif d == today + timedelta(days=1):
+            day_name = "Tomorrow"
+        container_to_date[f"{day_name} {d.day}"] = d.isoformat()
+    
+    # Detect if any task moved
+    changes_made = False
+    for container_name, item_list in sorted_containers.items():
+        new_date = container_to_date.get(container_name)
+        if new_date:
+            for item in item_list:
+                task_id = task_id_map.get(item)
+                if task_id:
+                    # Find current task date
+                    for t in data["tasks"]:
+                        if t["id"] == task_id and t.get("due_date") != new_date:
+                            t["due_date"] = new_date
+                            changes_made = True
+    
+    if changes_made:
+        save_tasks(data)
+        st.rerun()
+    
+    # Also show overdue tasks
+    if overdue:
+        st.markdown("---")
+        st.markdown("**⚠️ Overdue (drag to a day above to reschedule)**")
+        
+        overdue_items = [t["title"][:40] + ("..." if len(t["title"]) > 40 else "") for t in overdue]
+        for t in overdue:
+            label = t["title"][:40] + ("..." if len(t["title"]) > 40 else "")
+            task_id_map[label] = t["id"]
+        
+        # Show as sortable too
+        sorted_overdue = sort_items(overdue_items, direction="vertical")
+
+else:
+    # List view
+    view = st.radio("", ["Today", "All", "Done"], horizontal=True, label_visibility="collapsed")
+    
+    def render_task(task):
+        dk = task.get("department", "quick")
+        dept = dept_labels.get(dk, "Quick")
+        color = dept_colors.get(dk, "#6B7280")
+        due = task.get("due_date")
+        priority = task.get("priority", "medium")
+        
+        due_text = ""
         if due:
-            if due not in tasks_by_date:
-                tasks_by_date[due] = []
-            tasks_by_date[due].append(t)
-    
-    # Calendar navigation
-    if "cal_month" not in st.session_state:
-        st.session_state.cal_month = today.month
-    if "cal_year" not in st.session_state:
-        st.session_state.cal_year = today.year
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col1:
-        if st.button("< Prev"):
-            if st.session_state.cal_month == 1:
-                st.session_state.cal_month = 12
-                st.session_state.cal_year -= 1
+            if due < today_str:
+                due_text = "⚠️ OVERDUE"
+            elif due == today_str:
+                due_text = "Today"
             else:
-                st.session_state.cal_month -= 1
-            st.rerun()
-    with col2:
-        st.markdown(f"### {month_name[st.session_state.cal_month]} {st.session_state.cal_year}")
-    with col3:
-        if st.button("Next >"):
-            if st.session_state.cal_month == 12:
-                st.session_state.cal_month = 1
-                st.session_state.cal_year += 1
-            else:
-                st.session_state.cal_month += 1
-            st.rerun()
-    
-    # Build calendar HTML
-    cal = monthcalendar(st.session_state.cal_year, st.session_state.cal_month)
-    
-    calendar_html = '<div class="calendar-container"><div class="calendar-grid">'
-    
-    # Day headers
-    for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
-        calendar_html += f'<div class="calendar-day-header">{day}</div>'
-    
-    # Days
-    for week in cal:
-        for day in week:
-            if day == 0:
-                calendar_html += '<div class="calendar-day other-month"></div>'
-            else:
-                day_date = date(st.session_state.cal_year, st.session_state.cal_month, day)
-                day_str = day_date.isoformat()
-                is_today = day_date == today
-                
-                day_class = "calendar-day"
-                if is_today:
-                    day_class += " today"
-                
-                date_class = "calendar-date"
-                if is_today:
-                    date_class += " today"
-                
-                calendar_html += f'<div class="{day_class}">'
-                calendar_html += f'<div class="{date_class}">{day}</div>'
-                
-                # Tasks for this day
-                day_tasks = tasks_by_date.get(day_str, [])
-                shown = 0
-                for t in day_tasks[:3]:
-                    dk = t.get("department", "quick")
-                    color = dept_colors.get(dk, "#6B7280")
-                    calendar_html += f'<div class="calendar-task" style="background: {color};" title="{t["title"]}">{t["title"]}</div>'
-                    shown += 1
-                
-                if len(day_tasks) > 3:
-                    calendar_html += f'<div class="calendar-more">+{len(day_tasks) - 3} more</div>'
-                
-                calendar_html += '</div>'
-    
-    calendar_html += '</div></div>'
-    
-    st.markdown(calendar_html, unsafe_allow_html=True)
-    
-    # Quick task moving
-    st.markdown("**Quick Move Task**")
-    col1, col2, col3 = st.columns([2, 1, 1])
-    with col1:
-        task_options = {f"{t['title']}": t['id'] for t in open_tasks}
-        selected_task = st.selectbox("Select task", options=list(task_options.keys()), label_visibility="collapsed")
-    with col2:
-        new_date = st.date_input("New date", value=today, label_visibility="collapsed")
-    with col3:
-        if st.button("Move"):
-            task_id = task_options.get(selected_task)
-            if task_id:
+                due_text = due
+        
+        col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
+        
+        with col1:
+            done = st.checkbox("", value=task.get("done", False), key=f"done_{task['id']}")
+            if done != task.get("done", False):
                 for t in data["tasks"]:
-                    if t["id"] == task_id:
-                        t["due_date"] = new_date.isoformat()
-                save_tasks(data)
-                st.success(f"Moved!")
-                st.rerun()
-    
-    st.markdown("---")
-
-# Regular view tabs
-view = st.radio("View", ["Today", "All", "Done"], horizontal=True, label_visibility="collapsed")
-
-if st.session_state.selected_dept:
-    dept_name = dept_labels.get(st.session_state.selected_dept, "")
-    st.info(f"Filtered: {dept_name}")
-
-def render_task_card(task):
-    dk = task.get("department", "quick")
-    dept = dept_labels.get(dk, "Quick")
-    color = dept_colors.get(dk, "#6B7280")
-    due = task.get("due_date")
-    priority = task.get("priority", "medium")
-    
-    due_class = ""
-    due_text = ""
-    if due:
-        if due < today_str:
-            due_text = "OVERDUE"
-            due_class = "overdue"
-        elif due == today_str:
-            due_text = "Today"
-        else:
-            due_text = due
-    
-    pri_color = {"high": "#EF4444", "medium": "#F59E0B", "low": "#6B7280"}.get(priority, "#6B7280")
-    
-    return f"""
-    <div class="task-card" style="border-left-color: {color};">
-        <div class="task-title">{task['title']}</div>
-        <div class="task-meta">
-            <span class="task-dept" style="background: {color}22; color: {color};">{dept}</span>
-            <span class="task-due {due_class}">{due_text}</span>
-            <span style="color: {pri_color}; text-transform: uppercase; font-size: 0.65rem;">{priority}</span>
-        </div>
-    </div>
-    """
-
-# Views
-if view == "Today":
-    all_today = filter_tasks(overdue + today_tasks)
-    all_today_sorted = sorted(all_today, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
-    
-    if all_today_sorted:
-        st.markdown('<div class="section-head">Today\'s Tasks</div>', unsafe_allow_html=True)
-        
-        for task in all_today_sorted:
-            col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
-            
-            with col1:
-                done = st.checkbox("", value=task.get("done", False), key=f"done_{task['id']}")
-                if done != task.get("done", False):
-                    for t in data["tasks"]:
-                        if t["id"] == task["id"]:
-                            t["done"] = done
-                            if done:
-                                t["completed_date"] = today_str
-                    save_tasks(data)
-                    st.rerun()
-            
-            with col2:
-                st.markdown(render_task_card(task), unsafe_allow_html=True)
-                if task.get("notes"):
-                    st.caption(f"Notes: {task['notes']}")
-            
-            with col3:
-                with st.popover("Edit"):
-                    new_due = st.date_input("Due", 
-                        value=date.fromisoformat(task["due_date"]) if task.get("due_date") else None, 
-                        key=f"due_{task['id']}")
-                    new_priority = st.selectbox("Priority", ["high", "medium", "low"], 
-                        index=["high", "medium", "low"].index(task.get("priority", "medium")),
-                        key=f"pri_{task['id']}")
-                    new_notes = st.text_area("Notes", value=task.get("notes", ""), 
-                        key=f"notes_{task['id']}", height=80)
-                    
-                    if st.button("Save", key=f"save_{task['id']}"):
-                        for t in data["tasks"]:
-                            if t["id"] == task["id"]:
-                                t["due_date"] = new_due.isoformat() if new_due else None
-                                t["priority"] = new_priority
-                                t["notes"] = new_notes
-                        save_tasks(data)
-                        st.rerun()
-    else:
-        st.info("Nothing due today")
-
-elif view == "All":
-    filtered = filter_tasks(open_tasks)
-    filtered_sorted = sorted(filtered, key=lambda x: (x.get("order", 999), x.get("due_date") or "9999"))
-    
-    if filtered_sorted:
-        st.markdown('<div class="section-head">All Tasks</div>', unsafe_allow_html=True)
-        
-        for task in filtered_sorted:
-            col1, col2, col3 = st.columns([0.05, 0.8, 0.15])
-            
-            with col1:
-                done = st.checkbox("", value=False, key=f"done_{task['id']}")
-                if done:
-                    for t in data["tasks"]:
-                        if t["id"] == task["id"]:
-                            t["done"] = True
+                    if t["id"] == task["id"]:
+                        t["done"] = done
+                        if done:
                             t["completed_date"] = today_str
+                save_tasks(data)
+                st.rerun()
+        
+        with col2:
+            st.markdown(f"""
+            <div class="task-card" style="border-left-color: {color};">
+                <strong>{task['title']}</strong><br>
+                <small style="color: #888;">{dept} · {due_text} · {priority}</small>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            with st.popover("Edit"):
+                new_due = st.date_input("Due", 
+                    value=date.fromisoformat(task["due_date"]) if task.get("due_date") else None, 
+                    key=f"due_{task['id']}")
+                new_priority = st.selectbox("Priority", ["high", "medium", "low"], 
+                    index=["high", "medium", "low"].index(task.get("priority", "medium")),
+                    key=f"pri_{task['id']}")
+                new_notes = st.text_area("Notes", value=task.get("notes", ""), 
+                    key=f"notes_{task['id']}", height=60)
+                
+                if st.button("Save", key=f"save_{task['id']}"):
+                    for t in data["tasks"]:
+                        if t["id"] == task["id"]:
+                            t["due_date"] = new_due.isoformat() if new_due else None
+                            t["priority"] = new_priority
+                            t["notes"] = new_notes
                     save_tasks(data)
                     st.rerun()
-            
-            with col2:
-                st.markdown(render_task_card(task), unsafe_allow_html=True)
-            
-            with col3:
-                with st.popover("Edit"):
-                    new_due = st.date_input("Due", 
-                        value=date.fromisoformat(task["due_date"]) if task.get("due_date") else None,
-                        key=f"due_{task['id']}")
-                    new_priority = st.selectbox("Priority", ["high", "medium", "low"],
-                        index=["high", "medium", "low"].index(task.get("priority", "medium")),
-                        key=f"pri_{task['id']}")
-                    new_notes = st.text_area("Notes", value=task.get("notes", ""),
-                        key=f"notes_{task['id']}", height=80)
-                    if st.button("Save", key=f"save_{task['id']}"):
-                        for t in data["tasks"]:
-                            if t["id"] == task["id"]:
-                                t["due_date"] = new_due.isoformat() if new_due else None
-                                t["priority"] = new_priority
-                                t["notes"] = new_notes
-                        save_tasks(data)
-                        st.rerun()
-
-elif view == "Done":
-    filtered = filter_tasks(done_tasks)
     
-    if filtered:
-        st.markdown('<div class="section-head">Completed</div>', unsafe_allow_html=True)
-        for task in filtered[:30]:
-            st.markdown(f"~~{task['title']}~~")
-    else:
-        st.info("No completed tasks")
+    if view == "Today":
+        all_today = overdue + today_tasks
+        all_today = sorted(all_today, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
+        
+        if all_today:
+            st.markdown('<div class="section-head">Today</div>', unsafe_allow_html=True)
+            for task in all_today:
+                render_task(task)
+        else:
+            st.info("Nothing due today")
+    
+    elif view == "All":
+        sorted_tasks = sorted(open_tasks, key=lambda x: (x.get("due_date") or "9999", x.get("priority") != "high"))
+        
+        if sorted_tasks:
+            st.markdown('<div class="section-head">All Tasks</div>', unsafe_allow_html=True)
+            for task in sorted_tasks:
+                render_task(task)
+    
+    elif view == "Done":
+        if done_tasks:
+            st.markdown('<div class="section-head">Completed</div>', unsafe_allow_html=True)
+            for task in done_tasks[:30]:
+                st.markdown(f"~~{task['title']}~~")
+        else:
+            st.info("No completed tasks")
