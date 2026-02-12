@@ -226,147 +226,133 @@ if st.session_state.selected_dept:
     st.info(f"Filtered: {dept_labels.get(st.session_state.selected_dept, '')}")
 
 if st.session_state.show_calendar:
-    # Calendar view with drag-and-drop between days
+    # Calendar view with clickable colored task cards
     days = [(today + timedelta(days=i-1)) for i in range(7)]
     
-    # Department emoji mapping for visual distinction
-    dept_emoji = {
-        "customers": "🟣",
-        "customs_shipping": "🔵", 
-        "brand_outreach": "🟢",
-        "brand_followups": "🟩",
-        "content": "🩷",
-        "legal": "🟤",
-        "product": "🔷",
-        "business": "🟠",
-        "fundraising": "🔴",
-        "hiring": "🟣",
-        "finance": "🩵",
-        "quick": "⚪"
-    }
+    # Initialize selected task state
+    if "selected_task" not in st.session_state:
+        st.session_state.selected_task = None
     
-    # Build multi-container structure
-    task_id_map = {}  # display -> task id
-    task_date_map = {}  # display -> original date
+    # If a task is selected, show action bar at top
+    if st.session_state.selected_task:
+        sel_task = next((t for t in tasks if t["id"] == st.session_state.selected_task), None)
+        if sel_task:
+            st.markdown(f"**Selected:** {sel_task['title'][:50]}")
+            ac1, ac2, ac3, ac4, ac5 = st.columns([1, 1, 1, 2, 1])
+            
+            with ac1:
+                if st.button("✅ Done", use_container_width=True, key="action_done"):
+                    for t in data["tasks"]:
+                        if t["id"] == st.session_state.selected_task:
+                            t["done"] = True
+                            t["completed_date"] = today_str
+                    save_tasks(data)
+                    st.session_state.selected_task = None
+                    st.rerun()
+            
+            with ac2:
+                if st.button("→ Tomorrow", use_container_width=True, key="action_tomorrow"):
+                    for t in data["tasks"]:
+                        if t["id"] == st.session_state.selected_task:
+                            t["due_date"] = (today + timedelta(days=1)).isoformat()
+                    save_tasks(data)
+                    st.session_state.selected_task = None
+                    st.rerun()
+            
+            with ac3:
+                if st.button("→ Today", use_container_width=True, key="action_today"):
+                    for t in data["tasks"]:
+                        if t["id"] == st.session_state.selected_task:
+                            t["due_date"] = today_str
+                    save_tasks(data)
+                    st.session_state.selected_task = None
+                    st.rerun()
+            
+            with ac4:
+                move_to = st.date_input("Move to date", value=today, label_visibility="collapsed", key="action_date")
+                
+            with ac5:
+                if st.button("Move", use_container_width=True, key="action_move"):
+                    for t in data["tasks"]:
+                        if t["id"] == st.session_state.selected_task:
+                            t["due_date"] = move_to.isoformat()
+                    save_tasks(data)
+                    st.session_state.selected_task = None
+                    st.rerun()
+            
+            if st.button("✕ Cancel", key="action_cancel"):
+                st.session_state.selected_task = None
+                st.rerun()
+            
+            st.markdown("---")
     
-    multi_items = []
-    for d in days:
+    # Render day columns with clickable task cards
+    cols = st.columns(7)
+    
+    for i, d in enumerate(days):
         d_str = d.isoformat()
         day_tasks = [t for t in filter_tasks(open_tasks) if t.get("due_date") == d_str]
         day_tasks = sorted(day_tasks, key=lambda x: (x.get("order", 999), x.get("priority") != "high"))
         
         day_name = d.strftime("%a")
         if d == today:
-            day_name = f"📍 TODAY {d.day}"
+            day_name = "📍 TODAY"
         elif d == today - timedelta(days=1):
-            day_name = f"Yesterday {d.day}"
+            day_name = "Yesterday"
         elif d == today + timedelta(days=1):
-            day_name = f"Tomorrow {d.day}"
+            day_name = "Tomorrow"
         else:
-            day_name = f"{d.strftime('%a')} {d.day}"
+            day_name = f"{d.strftime('%a')}"
         
-        items = []
-        for t in day_tasks:
-            dk = t.get("department", "quick")
-            emoji = dept_emoji.get(dk, "⚪")
-            label = t["title"][:22] + "..." if len(t["title"]) > 22 else t["title"]
-            display = f"{emoji} {label}"
-            items.append(display)
-            task_id_map[display] = t["id"]
-            task_date_map[display] = d_str
-        
-        multi_items.append({
-            "header": day_name,
-            "items": items
-        })
-    
-    # Drag-and-drop sortable
-    sorted_multi = sort_items(multi_items, multi_containers=True, direction="vertical")
-    
-    # Detect and save changes
-    changes_made = False
-    for i, container in enumerate(sorted_multi):
-        new_date = days[i].isoformat()
-        for order_idx, display in enumerate(container.get("items", [])):
-            tid = task_id_map.get(display)
-            if tid:
-                for t in data["tasks"]:
-                    if t["id"] == tid:
-                        if t.get("due_date") != new_date:
-                            t["due_date"] = new_date
-                            changes_made = True
-                        if t.get("order") != order_idx:
-                            t["order"] = order_idx
-                            changes_made = True
-    
-    if changes_made:
-        save_tasks(data)
-        st.rerun()
-    
-    # Quick actions bar
-    st.markdown("---")
-    st.markdown("**Quick Actions** — select a task")
-    
-    all_scheduled = [t for t in filter_tasks(open_tasks) if t.get("due_date")]
-    task_options = {"— Select task —": None}
-    for t in sorted(all_scheduled, key=lambda x: x.get("due_date", "")):
-        dk = t.get("department", "quick")
-        emoji = dept_emoji.get(dk, "⚪")
-        due = t.get("due_date", "")
-        if due == today_str:
-            due_label = "Today"
-        elif due == (today + timedelta(days=1)).isoformat():
-            due_label = "Tomorrow"
-        else:
-            due_label = due[5:] if due else ""
-        task_options[f"{emoji} {t['title'][:35]} ({due_label})"] = t["id"]
-    
-    c1, c2, c3, c4, c5 = st.columns([3, 1, 1, 1, 1])
-    
-    with c1:
-        selected = st.selectbox("Task", list(task_options.keys()), label_visibility="collapsed", key="quick_action_task")
-    
-    selected_tid = task_options.get(selected)
-    
-    with c2:
-        if st.button("✅ Done", use_container_width=True, disabled=not selected_tid):
-            if selected_tid:
-                for t in data["tasks"]:
-                    if t["id"] == selected_tid:
-                        t["done"] = True
-                        t["completed_date"] = today_str
-                save_tasks(data)
-                st.rerun()
-    
-    with c3:
-        if st.button("→ Tomorrow", use_container_width=True, disabled=not selected_tid):
-            if selected_tid:
-                for t in data["tasks"]:
-                    if t["id"] == selected_tid:
-                        t["due_date"] = (today + timedelta(days=1)).isoformat()
-                save_tasks(data)
-                st.rerun()
-    
-    with c4:
-        move_date = st.date_input("Date", value=today, label_visibility="collapsed", key="move_date_picker")
-    
-    with c5:
-        if st.button("Move →", use_container_width=True, disabled=not selected_tid):
-            if selected_tid:
-                for t in data["tasks"]:
-                    if t["id"] == selected_tid:
-                        t["due_date"] = move_date.isoformat()
-                save_tasks(data)
-                st.rerun()
+        with cols[i]:
+            title_class = "day-title today" if d == today else "day-title"
+            st.markdown(f'<div class="{title_class}">{day_name}<br><span style="font-size:1.3rem; font-weight:700;">{d.day}</span></div>', unsafe_allow_html=True)
+            
+            if day_tasks:
+                for t in day_tasks:
+                    dk = t.get("department", "quick")
+                    color = dept_colors.get(dk, "#6B7280")
+                    label = t["title"][:18] + "..." if len(t["title"]) > 18 else t["title"]
+                    is_selected = st.session_state.selected_task == t["id"]
+                    
+                    # Use popover for each task
+                    with st.popover(f"{'✓ ' if is_selected else ''}{label}", use_container_width=True):
+                        st.markdown(f"**{t['title']}**")
+                        st.caption(f"Dept: {dept_labels.get(dk, 'Quick')}")
+                        
+                        if st.button("✅ Mark Done", key=f"pop_done_{t['id']}", use_container_width=True):
+                            for task in data["tasks"]:
+                                if task["id"] == t["id"]:
+                                    task["done"] = True
+                                    task["completed_date"] = today_str
+                            save_tasks(data)
+                            st.rerun()
+                        
+                        if st.button("→ Tomorrow", key=f"pop_tmrw_{t['id']}", use_container_width=True):
+                            for task in data["tasks"]:
+                                if task["id"] == t["id"]:
+                                    task["due_date"] = (today + timedelta(days=1)).isoformat()
+                            save_tasks(data)
+                            st.rerun()
+                        
+                        new_date = st.date_input("Move to", value=d, key=f"pop_date_{t['id']}", label_visibility="collapsed")
+                        if st.button("Move to date", key=f"pop_move_{t['id']}", use_container_width=True):
+                            for task in data["tasks"]:
+                                if task["id"] == t["id"]:
+                                    task["due_date"] = new_date.isoformat()
+                            save_tasks(data)
+                            st.rerun()
+            else:
+                st.caption("—")
     
     # Color legend
     st.markdown("---")
-    legend_html = "<div style='display:flex; flex-wrap:wrap; gap:10px; align-items:center;'><span style='font-size:0.75rem; color:#888;'>Legend:</span>"
+    legend_html = "<div style='display:flex; flex-wrap:wrap; gap:8px; align-items:center;'><span style='font-size:0.75rem; color:#888;'>Departments:</span>"
     for dk, dn in dept_labels.items():
-        emoji = dept_emoji.get(dk, "⚪")
+        color = dept_colors.get(dk, "#6B7280")
         count = len([t for t in open_tasks if t.get("department") == dk])
         if count > 0:
-            legend_html += f"<span style='font-size:0.8rem;'>{emoji} {dn}</span>"
+            legend_html += f"<span style='background:{color}; color:white; padding:3px 8px; border-radius:4px; font-size:0.7rem;'>{dn}</span>"
     legend_html += "</div>"
     st.markdown(legend_html, unsafe_allow_html=True)
     
@@ -374,15 +360,38 @@ if st.session_state.show_calendar:
     overdue_filtered = filter_tasks(overdue)
     if overdue_filtered:
         st.markdown("---")
-        st.markdown("**⚠️ Overdue** — drag into a day column above, or use Quick Actions")
-        overdue_html = "<div style='display:flex; flex-wrap:wrap; gap:6px;'>"
-        for t in overdue_filtered[:15]:
+        st.markdown("**⚠️ Overdue Tasks**")
+        ov_cols = st.columns(4)
+        for idx, t in enumerate(overdue_filtered[:12]):
             dk = t.get("department", "quick")
             color = dept_colors.get(dk, "#6B7280")
-            emoji = dept_emoji.get(dk, "⚪")
-            overdue_html += f'<span style="background:{color}; color:white; padding:6px 10px; border-radius:6px; font-size:0.75rem;">{emoji} {t["title"][:28]}</span>'
-        overdue_html += "</div>"
-        st.markdown(overdue_html, unsafe_allow_html=True)
+            label = t["title"][:22] + "..." if len(t["title"]) > 22 else t["title"]
+            
+            with ov_cols[idx % 4]:
+                with st.popover(label, use_container_width=True):
+                    st.markdown(f"**{t['title']}**")
+                    
+                    if st.button("✅ Done", key=f"ov_done_{t['id']}", use_container_width=True):
+                        for task in data["tasks"]:
+                            if task["id"] == t["id"]:
+                                task["done"] = True
+                                task["completed_date"] = today_str
+                        save_tasks(data)
+                        st.rerun()
+                    
+                    if st.button("→ Today", key=f"ov_today_{t['id']}", use_container_width=True):
+                        for task in data["tasks"]:
+                            if task["id"] == t["id"]:
+                                task["due_date"] = today_str
+                        save_tasks(data)
+                        st.rerun()
+                    
+                    if st.button("→ Tomorrow", key=f"ov_tmrw_{t['id']}", use_container_width=True):
+                        for task in data["tasks"]:
+                            if task["id"] == t["id"]:
+                                task["due_date"] = (today + timedelta(days=1)).isoformat()
+                        save_tasks(data)
+                        st.rerun()
 
 else:
     # List view
