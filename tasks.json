@@ -393,6 +393,16 @@
       "notes": "",
       "done": false,
       "created": "2026-02-12T21:40:59.857734"
+    },
+    {
+      "id": "20260213004724",
+      "title": "Send Devesh Clawdbot setup guide + use cases for Mina Jewelers",
+      "department": "quick",
+      "priority": "high",
+      "due_date": "2026-02-14",
+      "notes": "Include: setup videos, use cases for jewelry business, benefits",
+      "done": false,
+      "created": "2026-02-13T00:47:24.639910"
     }
   ]
 }
