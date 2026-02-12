@@ -81,6 +81,33 @@ st.markdown("""
     
     #MainMenu, footer, header, .stDeployButton { display: none !important; }
     
+    /* Override sortables brown/tan color */
+    div[data-testid="stVerticalBlock"] .sortable-item,
+    .sortable-item,
+    [class*="sortable"] > div,
+    div[draggable="true"] {
+        background: white !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        padding: 10px 12px !important;
+        margin-bottom: 6px !important;
+        font-size: 0.8rem !important;
+        color: #333 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+    }
+    
+    div[draggable="true"]:hover {
+        border-color: #3B82F6 !important;
+        box-shadow: 0 2px 6px rgba(59,130,246,0.15) !important;
+    }
+    
+    /* Sortable container headers */
+    .sortable-container-header {
+        font-weight: 600 !important;
+        color: var(--charcoal) !important;
+        background: transparent !important;
+    }
+    
     .stats-row {
         display: flex;
         gap: 1rem;
@@ -276,12 +303,67 @@ if st.session_state.show_calendar:
         save_tasks(data)
         st.rerun()
     
+    # Quick actions bar
+    st.markdown("---")
+    st.markdown("**Quick Actions** — select a task")
+    
+    all_scheduled = [t for t in filter_tasks(open_tasks) if t.get("due_date")]
+    task_options = {"— Select task —": None}
+    for t in sorted(all_scheduled, key=lambda x: x.get("due_date", "")):
+        dk = t.get("department", "quick")
+        emoji = dept_emoji.get(dk, "⚪")
+        due = t.get("due_date", "")
+        if due == today_str:
+            due_label = "Today"
+        elif due == (today + timedelta(days=1)).isoformat():
+            due_label = "Tomorrow"
+        else:
+            due_label = due[5:] if due else ""
+        task_options[f"{emoji} {t['title'][:35]} ({due_label})"] = t["id"]
+    
+    c1, c2, c3, c4, c5 = st.columns([3, 1, 1, 1, 1])
+    
+    with c1:
+        selected = st.selectbox("Task", list(task_options.keys()), label_visibility="collapsed", key="quick_action_task")
+    
+    selected_tid = task_options.get(selected)
+    
+    with c2:
+        if st.button("✅ Done", use_container_width=True, disabled=not selected_tid):
+            if selected_tid:
+                for t in data["tasks"]:
+                    if t["id"] == selected_tid:
+                        t["done"] = True
+                        t["completed_date"] = today_str
+                save_tasks(data)
+                st.rerun()
+    
+    with c3:
+        if st.button("→ Tomorrow", use_container_width=True, disabled=not selected_tid):
+            if selected_tid:
+                for t in data["tasks"]:
+                    if t["id"] == selected_tid:
+                        t["due_date"] = (today + timedelta(days=1)).isoformat()
+                save_tasks(data)
+                st.rerun()
+    
+    with c4:
+        move_date = st.date_input("Date", value=today, label_visibility="collapsed", key="move_date_picker")
+    
+    with c5:
+        if st.button("Move →", use_container_width=True, disabled=not selected_tid):
+            if selected_tid:
+                for t in data["tasks"]:
+                    if t["id"] == selected_tid:
+                        t["due_date"] = move_date.isoformat()
+                save_tasks(data)
+                st.rerun()
+    
     # Color legend
     st.markdown("---")
-    legend_html = "<div style='display:flex; flex-wrap:wrap; gap:10px; align-items:center;'>"
+    legend_html = "<div style='display:flex; flex-wrap:wrap; gap:10px; align-items:center;'><span style='font-size:0.75rem; color:#888;'>Legend:</span>"
     for dk, dn in dept_labels.items():
         emoji = dept_emoji.get(dk, "⚪")
-        color = dept_colors.get(dk, "#6B7280")
         count = len([t for t in open_tasks if t.get("department") == dk])
         if count > 0:
             legend_html += f"<span style='font-size:0.8rem;'>{emoji} {dn}</span>"
@@ -292,17 +374,7 @@ if st.session_state.show_calendar:
     overdue_filtered = filter_tasks(overdue)
     if overdue_filtered:
         st.markdown("---")
-        st.markdown("**⚠️ Overdue** — drag these into a day above")
-        # Add overdue as a container
-        overdue_items = []
-        for t in overdue_filtered[:12]:
-            dk = t.get("department", "quick")
-            emoji = dept_emoji.get(dk, "⚪")
-            label = t["title"][:25] + "..." if len(t["title"]) > 25 else t["title"]
-            display = f"{emoji} {label}"
-            overdue_items.append(display)
-            task_id_map[display] = t["id"]
-        
+        st.markdown("**⚠️ Overdue** — drag into a day column above, or use Quick Actions")
         overdue_html = "<div style='display:flex; flex-wrap:wrap; gap:6px;'>"
         for t in overdue_filtered[:15]:
             dk = t.get("department", "quick")
