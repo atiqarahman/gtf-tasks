@@ -10,83 +10,17 @@ from datetime import datetime, date, timedelta
 from pathlib import Path
 from streamlit_sortables import sort_items
 
-# Cricket live scores - using Cricbuzz API
-@st.cache_data(ttl=60)  # Cache for 60 seconds
+# Cricket live scores - placeholder for now
 def get_live_cricket():
-    try:
-        import re
-        # Use Cricbuzz mobile which has embedded JSON (may be escaped)
-        url = "https://m.cricbuzz.com/"
-        headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)"}
-        resp = requests.get(url, headers=headers, timeout=8)
-        if resp.status_code != 200:
-            return []
-            
-        text = resp.text
-        live_matches = []
-        seen_ids = set()
-        
-        # Handle both escaped (\") and unescaped (") JSON quotes
-        # Normalize escaped quotes for easier parsing
-        normalized = text.replace('\\"', '"')
-        
-        # Find all "In Progress" match blocks
-        for match in re.finditer(r'"matchInfo":\{[^}]*?"matchId":(\d+)', normalized):
-            match_id = match.group(1)
-            if match_id in seen_ids:
-                continue
-            seen_ids.add(match_id)
-            
-            start = match.start()
-            # Look at the next ~3000 chars for this match
-            block = normalized[start:start+3000]
-            
-            # Check if In Progress
-            if '"state":"In Progress"' not in block:
-                continue
-            
-            # Extract team names
-            t1 = re.search(r'"team1":\{[^}]*"teamSName":"(\w+)"', block)
-            t2 = re.search(r'"team2":\{[^}]*"teamSName":"(\w+)"', block)
-            status = re.search(r'"status":"([^"]{1,80})"', block)
-            
-            if not (t1 and t2):
-                continue
-                
-            team1 = t1.group(1)
-            team2 = t2.group(1)
-            match_status = status.group(1) if status else "Live"
-            
-            # Find scores in matchScore block
-            score1 = ""
-            score2 = ""
-            
-            # Look for scores - they might be after matchInfo
-            score_block = block
-            
-            # Team 1 score (first innings)
-            t1_score = re.search(r'"team1Score":\{"inngs1":\{[^}]*"runs":(\d+)[^}]*"wickets":(\d+)[^}]*"overs":([\d.]+)', score_block)
-            if t1_score:
-                score1 = f"{team1}: {t1_score.group(1)}/{t1_score.group(2)} ({t1_score.group(3)} ov)"
-            
-            # Team 2 score (first innings)
-            t2_score = re.search(r'"team2Score":\{"inngs1":\{[^}]*"runs":(\d+)[^}]*"wickets":(\d+)[^}]*"overs":([\d.]+)', score_block)
-            if t2_score:
-                score2 = f"{team2}: {t2_score.group(1)}/{t2_score.group(2)} ({t2_score.group(3)} ov)"
-            
-            live_matches.append({
-                "match": f"{team1} vs {team2}",
-                "score1": score1,
-                "score2": score2,
-                "status": match_status
-            })
-            
-            if len(live_matches) >= 3:
-                break
-                
-        return live_matches
-    except Exception as e:
-        return []
+    # Hardcoded sample data - replace with live API later
+    return [
+        {
+            "match": "IND vs NAM",
+            "score1": "IND: 209/9 (20 ov)",
+            "score2": "NAM: 142/10 (18.3 ov)",
+            "status": "India won by 67 runs"
+        }
+    ]
 
 st.set_page_config(
     page_title="GTF Command Center",
