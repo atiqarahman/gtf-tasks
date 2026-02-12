@@ -1,7 +1,7 @@
 {
   "departments": [
     "customers",
-    "customs_shipping", 
+    "customs_shipping",
     "brand_outreach",
     "brand_followups",
     "content",
@@ -14,18 +14,18 @@
     "quick"
   ],
   "department_labels": {
-    "customers": "🛍️ Customers",
-    "customs_shipping": "📦 Customs & Shipping",
-    "brand_outreach": "🎯 Brand Outreach",
-    "brand_followups": "🔄 Brand Follow-ups",
-    "content": "📸 Content (Instagram)",
-    "legal": "⚖️ Legal & Contracts",
-    "product": "💻 Product (Dev/Images/Attributes)",
-    "business": "📋 Business Planning",
-    "fundraising": "💰 Fundraising",
-    "hiring": "👥 Hiring",
-    "finance": "💵 Finance & Accounting",
-    "quick": "⚡ Quick Tasks"
+    "customers": "\ud83d\udecd\ufe0f Customers",
+    "customs_shipping": "\ud83d\udce6 Customs & Shipping",
+    "brand_outreach": "\ud83c\udfaf Brand Outreach",
+    "brand_followups": "\ud83d\udd04 Brand Follow-ups",
+    "content": "\ud83d\udcf8 Content (Instagram)",
+    "legal": "\u2696\ufe0f Legal & Contracts",
+    "product": "\ud83d\udcbb Product (Dev/Images/Attributes)",
+    "business": "\ud83d\udccb Business Planning",
+    "fundraising": "\ud83d\udcb0 Fundraising",
+    "hiring": "\ud83d\udc65 Hiring",
+    "finance": "\ud83d\udcb5 Finance & Accounting",
+    "quick": "\u26a1 Quick Tasks"
   },
   "tasks": [
     {
@@ -70,7 +70,7 @@
     },
     {
       "id": "g005",
-      "title": "SKU ↔ Google Drive image matching",
+      "title": "SKU \u2194 Google Drive image matching",
       "department": "product",
       "priority": "low",
       "due_date": "2026-02-12",
@@ -317,6 +317,16 @@
       "notes": "Old key was exposed",
       "done": false,
       "created": "2026-02-12T16:50:00"
+    },
+    {
+      "id": "20260212165457",
+      "title": "Sort out WhatsApp method for Muskaan",
+      "department": "customers",
+      "priority": "high",
+      "due_date": "2026-02-13",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T16:54:57.461223"
     }
   ]
 }
