@@ -72,7 +72,7 @@
     },
     {
       "id": "g005",
-      "title": "SKU ↔ Google Drive image matching",
+      "title": "SKU \u2194 Google Drive image matching",
       "department": "product",
       "priority": "low",
       "due_date": "2026-02-12",
@@ -122,7 +122,7 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can draft the full JD — tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve."
+      "zoya_suggestion": "I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve."
     },
     {
       "id": "g010",
@@ -134,7 +134,7 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can create a LinkedIn outreach playbook — target profiles, message templates, follow-up cadence for recruiting Head of Tech."
+      "zoya_suggestion": "I can create a LinkedIn outreach playbook \u2014 target profiles, message templates, follow-up cadence for recruiting Head of Tech."
     },
     {
       "id": "g011",
@@ -178,7 +178,7 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can create a deck tailored for international brands — different value prop, logistics story, market opportunity. Tell me the angle you want."
+      "zoya_suggestion": "I can create a deck tailored for international brands \u2014 different value prop, logistics story, market opportunity. Tell me the angle you want."
     },
     {
       "id": "g015",
@@ -292,7 +292,7 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can draft clear SOW docs for both — deliverables, timelines, milestones, communication expectations. Tell me their roles and I'll structure it."
+      "zoya_suggestion": "I can draft clear SOW docs for both \u2014 deliverables, timelines, milestones, communication expectations. Tell me their roles and I'll structure it."
     },
     {
       "id": "g026",
@@ -383,6 +383,16 @@
       "notes": "",
       "done": false,
       "created": "2026-02-12T19:08:17.773983"
+    },
+    {
+      "id": "20260212214059",
+      "title": "Arrange pick up for Indian customer item on DHL website",
+      "department": "customs_shipping",
+      "priority": "high",
+      "due_date": "2026-02-13",
+      "notes": "",
+      "done": false,
+      "created": "2026-02-12T21:40:59.857734"
     }
   ]
 }
