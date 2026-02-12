@@ -75,7 +75,7 @@
       "title": "SKU \u2194 Google Drive image matching",
       "department": "product",
       "priority": "low",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "Zoya task",
       "done": false,
       "created": "2026-02-12T16:00:00",
@@ -87,7 +87,7 @@
       "title": "Brand outreach strategy - email automation with Zoya",
       "department": "brand_outreach",
       "priority": "high",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "Email automation started",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -163,7 +163,7 @@
       "title": "Indian brands deck - finalize",
       "department": "fundraising",
       "priority": "medium",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "Speak w Mrigranka",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -173,7 +173,7 @@
       "title": "International brands deck - create",
       "department": "fundraising",
       "priority": "medium",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "Separate version/strategy",
       "done": false,
       "created": "2026-02-12T16:00:00",
@@ -329,7 +329,7 @@
       "title": "Send new API key to Mukesh",
       "department": "product",
       "priority": "high",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "Old key was exposed",
       "done": false,
       "created": "2026-02-12T16:50:00"
@@ -349,7 +349,7 @@
       "title": "Make payment to brand Tarun",
       "department": "quick",
       "priority": "high",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "",
       "done": false,
       "created": "2026-02-12T17:40:55.788074"
@@ -359,7 +359,7 @@
       "title": "Update profile image",
       "department": "quick",
       "priority": "medium",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "",
       "done": false,
       "created": "2026-02-12T17:40:55.788081"
@@ -369,7 +369,7 @@
       "title": "Check Mukesh WhatsApp messages to debug issue + speak to Zoya",
       "department": "product",
       "priority": "high",
-      "due_date": "2026-02-12",
+      "due_date": "2026-02-13",
       "notes": "",
       "done": false,
       "created": "2026-02-12T17:53:05.668365"
