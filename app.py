@@ -1,18 +1,18 @@
 """
-GTF Command Center
-Clean. Minimal. Get shit done.
+GTF Command Center v3
+Inspired by Linear, Notion, Asana
 """
 
 import streamlit as st
 import json
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from pathlib import Path
 
 st.set_page_config(
-    page_title="GTF Tasks",
+    page_title="GTF Command Center",
     page_icon="✨",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 DATA_FILE = Path(__file__).parent / "tasks.json"
@@ -25,280 +25,517 @@ def load_tasks():
 data = load_tasks()
 tasks = data.get("tasks", [])
 dept_labels = data.get("department_labels", {})
+today_str = date.today().isoformat()
 
-# Clean minimal CSS
+# Modern SaaS styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    * { font-family: 'Inter', sans-serif; }
+    :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fc;
+        --bg-hover: #f3f4f8;
+        --border: #e6e8eb;
+        --text-primary: #1a1a2e;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --accent: #6366f1;
+        --accent-light: #eef2ff;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --success: #10b981;
+    }
     
-    .main { background: #fafafa; }
+    * { font-family: 'Inter', -apple-system, sans-serif !important; }
+    
+    .main { background: var(--bg-secondary) !important; }
     
     .block-container {
-        padding: 2rem 3rem !important;
-        max-width: 1200px;
+        padding: 1.5rem 2rem !important;
+        max-width: 1400px !important;
     }
     
-    h1 { 
-        font-weight: 600 !important; 
-        font-size: 1.8rem !important;
-        color: #111 !important;
-        margin-bottom: 0.5rem !important;
+    /* Hide default streamlit */
+    #MainMenu, footer, .stDeployButton, header { visibility: hidden; }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: var(--bg-primary) !important;
+        border-right: 1px solid var(--border) !important;
     }
     
-    .subtitle {
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 2rem;
+    [data-testid="stSidebar"] .block-container {
+        padding: 1.5rem 1rem !important;
     }
     
-    .stat-row {
+    /* Header */
+    .header-container {
         display: flex;
-        gap: 1.5rem;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .header-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .header-date {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+    
+    /* Stats cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
         margin-bottom: 2rem;
     }
     
-    .stat-box {
-        background: white;
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        padding: 1rem 1.5rem;
-        min-width: 120px;
+    .stat-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.2s ease;
     }
     
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 600;
-        color: #111;
+    .stat-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
     }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .stat-value.danger { color: var(--danger); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.success { color: var(--success); }
     
     .stat-label {
         font-size: 0.75rem;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .section-title {
-        font-size: 0.85rem;
         font-weight: 500;
-        color: #888;
+        color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 2rem 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #eee;
+        letter-spacing: 0.05em;
+        margin-top: 0.5rem;
     }
     
-    .task-item {
-        background: white;
-        border: 1px solid #e5e5e5;
-        border-radius: 6px;
-        padding: 0.9rem 1rem;
-        margin-bottom: 0.5rem;
+    /* Section */
+    .section {
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    
+    .section-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        transition: all 0.15s ease;
     }
     
-    .task-item:hover {
-        border-color: #ccc;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    
-    .task-done {
-        opacity: 0.5;
-        text-decoration: line-through;
-    }
-    
-    .task-title {
-        font-size: 0.9rem;
-        color: #222;
-        font-weight: 400;
-    }
-    
-    .task-meta {
-        font-size: 0.75rem;
-        color: #999;
-        margin-top: 0.25rem;
-    }
-    
-    .priority-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 10px;
-    }
-    
-    .priority-high { background: #ef4444; }
-    .priority-medium { background: #f59e0b; }
-    .priority-low { background: #3b82f6; }
-    
-    .overdue { color: #ef4444 !important; font-weight: 500; }
-    
-    .dept-badge {
-        font-size: 0.7rem;
-        background: #f3f4f6;
-        color: #666;
-        padding: 2px 8px;
-        border-radius: 4px;
-        margin-left: 8px;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: #999;
-    }
-    
-    /* Hide streamlit stuff */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    .stDeployButton {display: none;}
-    
-    /* Clean up expanders */
-    .streamlit-expanderHeader {
-        font-size: 0.9rem !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Radio buttons as tabs */
-    .stRadio > div {
+    .section-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
         display: flex;
+        align-items: center;
         gap: 0.5rem;
     }
     
+    .section-count {
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+    }
+    
+    /* Task row */
+    .task-row {
+        display: flex;
+        align-items: center;
+        padding: 0.875rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s ease;
+        cursor: pointer;
+    }
+    
+    .task-row:last-child { border-bottom: none; }
+    .task-row:hover { background: var(--bg-hover); }
+    
+    .task-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
+        margin-right: 0.875rem;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+    
+    .task-checkbox:hover {
+        border-color: var(--accent);
+        background: var(--accent-light);
+    }
+    
+    .task-checkbox.checked {
+        background: var(--success);
+        border-color: var(--success);
+    }
+    
+    .task-content { flex: 1; min-width: 0; }
+    
+    .task-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.125rem;
+    }
+    
+    .task-title.done {
+        color: var(--text-muted);
+        text-decoration: line-through;
+    }
+    
+    .task-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    
+    .task-due { 
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .task-due.overdue { color: var(--danger); font-weight: 500; }
+    .task-due.today { color: var(--accent); font-weight: 500; }
+    
+    /* Priority indicator */
+    .priority-bar {
+        width: 3px;
+        height: 24px;
+        border-radius: 2px;
+        margin-right: 0.875rem;
+        flex-shrink: 0;
+    }
+    
+    .priority-high { background: var(--danger); }
+    .priority-medium { background: var(--warning); }
+    .priority-low { background: #3b82f6; }
+    
+    /* Department badge */
+    .dept-badge {
+        font-size: 0.7rem;
+        font-weight: 500;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+    }
+    
+    /* Progress bar */
+    .progress-container {
+        margin-bottom: 2rem;
+    }
+    
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    
+    .progress-bar {
+        height: 6px;
+        background: var(--bg-secondary);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #818cf8);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+    
+    /* Empty state */
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        color: var(--text-muted);
+    }
+    
+    .empty-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* View tabs */
+    .view-tabs {
+        display: flex;
+        gap: 0.25rem;
+        background: var(--bg-secondary);
+        padding: 0.25rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        width: fit-content;
+    }
+    
+    .view-tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    
+    .view-tab:hover { color: var(--text-primary); }
+    .view-tab.active {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    /* Streamlit overrides */
+    .stRadio > div {
+        gap: 0.25rem !important;
+        background: var(--bg-secondary) !important;
+        padding: 0.25rem !important;
+        border-radius: 8px !important;
+        width: fit-content !important;
+    }
+    
     .stRadio label {
-        background: white !important;
-        border: 1px solid #e5e5e5 !important;
-        border-radius: 6px !important;
         padding: 0.5rem 1rem !important;
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
+        font-weight: 500 !important;
+        border-radius: 6px !important;
+        border: none !important;
+        background: transparent !important;
     }
     
     .stRadio label[data-checked="true"] {
-        background: #111 !important;
-        color: white !important;
-        border-color: #111 !important;
+        background: var(--bg-primary) !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+    }
+    
+    div[data-baseweb="select"] { font-size: 0.85rem !important; }
+    
+    .stExpander {
+        background: var(--bg-primary) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        margin-bottom: 0.75rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Header
-today_str = date.today().isoformat()
-st.markdown("# ✨ GTF Command Center")
-st.markdown(f'<p class="subtitle">{datetime.now().strftime("%A, %B %d")}</p>', unsafe_allow_html=True)
-
-# Stats
+# Calculate stats
 open_tasks = [t for t in tasks if not t.get("done")]
+done_tasks = [t for t in tasks if t.get("done")]
 today_tasks = [t for t in open_tasks if t.get("due_date") == today_str]
 overdue = [t for t in open_tasks if t.get("due_date") and t.get("due_date") < today_str]
 high_p = [t for t in open_tasks if t.get("priority") == "high"]
 
+total_tasks = len(tasks)
+done_count = len(done_tasks)
+progress = (done_count / total_tasks * 100) if total_tasks > 0 else 0
+
+# Sidebar
+with st.sidebar:
+    st.markdown("### ✨ GTF")
+    st.markdown(f"*{datetime.now().strftime('%a, %b %d')}*")
+    
+    st.markdown("---")
+    
+    st.markdown("**Quick Stats**")
+    st.metric("Open Tasks", len(open_tasks))
+    st.metric("Due Today", len(today_tasks))
+    st.metric("Overdue", len(overdue))
+    
+    st.markdown("---")
+    
+    st.markdown("**Departments**")
+    for dept_key, dept_name in dept_labels.items():
+        count = len([t for t in open_tasks if t.get("department") == dept_key])
+        if count > 0:
+            st.markdown(f"<small>{dept_name}: **{count}**</small>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("<small>💬 *Text Zoya to manage tasks*</small>", unsafe_allow_html=True)
+
+# Header
 st.markdown(f"""
-<div class="stat-row">
-    <div class="stat-box">
-        <div class="stat-number">{len(open_tasks)}</div>
-        <div class="stat-label">Open</div>
+<div class="header-container">
+    <div>
+        <div class="header-title">Command Center</div>
+        <div class="header-date">{datetime.now().strftime('%A, %B %d, %Y')}</div>
     </div>
-    <div class="stat-box">
-        <div class="stat-number">{len(today_tasks)}</div>
-        <div class="stat-label">Today</div>
+</div>
+""", unsafe_allow_html=True)
+
+# Progress bar
+st.markdown(f"""
+<div class="progress-container">
+    <div class="progress-header">
+        <span class="progress-label">Overall Progress</span>
+        <span class="progress-label">{done_count}/{total_tasks} tasks ({progress:.0f}%)</span>
     </div>
-    <div class="stat-box">
-        <div class="stat-number" style="color: {'#ef4444' if overdue else '#111'}">{len(overdue)}</div>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {progress}%"></div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Stats cards
+st.markdown(f"""
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{len(open_tasks)}</div>
+        <div class="stat-label">Open Tasks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{len(today_tasks)}</div>
+        <div class="stat-label">Due Today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value {'danger' if overdue else ''}">{len(overdue)}</div>
         <div class="stat-label">Overdue</div>
     </div>
-    <div class="stat-box">
-        <div class="stat-number">{len(high_p)}</div>
+    <div class="stat-card">
+        <div class="stat-value">{len(high_p)}</div>
         <div class="stat-label">High Priority</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Navigation
-view = st.radio("", ["Today", "All Tasks", "By Department", "Completed"], horizontal=True, label_visibility="collapsed")
+# View selector
+view = st.radio("View", ["Today", "All Tasks", "By Department", "Completed"], horizontal=True, label_visibility="collapsed")
 
-def render_task(task, show_dept=True):
+def render_task_row(task, show_dept=True):
     priority = task.get("priority", "medium")
     due = task.get("due_date")
     dept = dept_labels.get(task.get("department", "quick"), "Quick")
+    is_done = task.get("done", False)
     
+    due_class = ""
     due_text = ""
-    is_overdue = False
     if due:
         if due < today_str:
-            due_text = f"Overdue"
-            is_overdue = True
+            due_text = "⚠️ Overdue"
+            due_class = "overdue"
         elif due == today_str:
-            due_text = "Today"
+            due_text = "📍 Today"
+            due_class = "today"
         else:
-            due_text = due
+            due_text = f"📅 {due}"
+    
+    dept_clean = dept.split(" ", 1)[-1] if " " in dept else dept
     
     st.markdown(f"""
-    <div class="task-item {'task-done' if task.get('done') else ''}">
-        <div>
-            <span class="priority-dot priority-{priority}"></span>
-            <span class="task-title">{task['title']}</span>
-            {f'<span class="dept-badge">{dept.split(" ", 1)[-1] if " " in dept else dept}</span>' if show_dept else ''}
-            <div class="task-meta {'overdue' if is_overdue else ''}">{due_text}</div>
+    <div class="task-row">
+        <div class="priority-bar priority-{priority}"></div>
+        <div class="task-checkbox {'checked' if is_done else ''}">
+            {'✓' if is_done else ''}
+        </div>
+        <div class="task-content">
+            <div class="task-title {'done' if is_done else ''}">{task['title']}</div>
+            <div class="task-meta">
+                {f'<span class="task-due {due_class}">{due_text}</span>' if due_text else ''}
+                {f'<span class="dept-badge">{dept_clean}</span>' if show_dept else ''}
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# Views
+def render_section(title, task_list, show_dept=True, icon=""):
+    if not task_list:
+        return
+        
+    st.markdown(f"""
+    <div class="section">
+        <div class="section-header">
+            <div class="section-title">{icon} {title} <span class="section-count">{len(task_list)}</span></div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    for task in task_list:
+        render_task_row(task, show_dept)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# Render views
 if view == "Today":
     if overdue:
-        st.markdown('<div class="section-title">⚠️ Overdue</div>', unsafe_allow_html=True)
-        for task in sorted(overdue, key=lambda x: x.get("priority") != "high"):
-            render_task(task)
+        render_section("Overdue", sorted(overdue, key=lambda x: x.get("priority") != "high"), icon="⚠️")
     
     if today_tasks:
-        st.markdown('<div class="section-title">📍 Due Today</div>', unsafe_allow_html=True)
-        for task in sorted(today_tasks, key=lambda x: x.get("priority") != "high"):
-            render_task(task)
+        render_section("Due Today", sorted(today_tasks, key=lambda x: x.get("priority") != "high"), icon="📍")
     
-    if not today_tasks and not overdue:
-        st.markdown('<div class="empty-state">Nothing due today ✨</div>', unsafe_allow_html=True)
+    upcoming = [t for t in open_tasks if t.get("due_date") and t.get("due_date") > today_str][:5]
+    if upcoming:
+        render_section("Coming Up", sorted(upcoming, key=lambda x: x.get("due_date")), icon="📅")
+    
+    if not overdue and not today_tasks:
+        st.markdown("""
+        <div class="section">
+            <div class="empty-state">
+                <div class="empty-icon">✨</div>
+                <div>Nothing due today. You're all caught up!</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 elif view == "All Tasks":
-    st.markdown('<div class="section-title">All Open Tasks</div>', unsafe_allow_html=True)
-    
-    for task in sorted(open_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
-        render_task(task)
-    
-    if not open_tasks:
-        st.markdown('<div class="empty-state">No open tasks</div>', unsafe_allow_html=True)
+    render_section("All Open Tasks", sorted(open_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")), icon="📋")
 
 elif view == "By Department":
-    cols = st.columns(2)
-    
-    for i, (dept_key, dept_name) in enumerate(dept_labels.items()):
+    for dept_key, dept_name in dept_labels.items():
         dept_tasks = [t for t in open_tasks if t.get("department") == dept_key]
-        
-        with cols[i % 2]:
+        if dept_tasks:
             with st.expander(f"{dept_name} ({len(dept_tasks)})", expanded=False):
-                if dept_tasks:
-                    for task in sorted(dept_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
-                        render_task(task, show_dept=False)
-                else:
-                    st.markdown("*No tasks*")
+                for task in sorted(dept_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
+                    render_task_row(task, show_dept=False)
 
 elif view == "Completed":
-    done_tasks = [t for t in tasks if t.get("done")]
-    done_tasks = sorted(done_tasks, key=lambda x: x.get("completed_date", ""), reverse=True)
-    
-    st.markdown('<div class="section-title">Completed</div>', unsafe_allow_html=True)
-    
     if done_tasks:
-        for task in done_tasks[:30]:
-            render_task(task)
+        render_section("Completed", sorted(done_tasks, key=lambda x: x.get("completed_date", ""), reverse=True)[:30], icon="✅")
     else:
-        st.markdown('<div class="empty-state">Nothing completed yet. Get to work 💪</div>', unsafe_allow_html=True)
-
-# Footer tip
-st.markdown("---")
-st.markdown("*💬 Text Zoya to add tasks, mark done, or ask \"what's on my plate?\"*")
+        st.markdown("""
+        <div class="section">
+            <div class="empty-state">
+                <div class="empty-icon">💪</div>
+                <div>No completed tasks yet. Get to work!</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
