@@ -153,7 +153,12 @@ progress = (len(done_tasks) / len(tasks) * 100) if tasks else 0
 
 # Sidebar
 with st.sidebar:
-    st.markdown("### ✨ GTF")
+    # Logo
+    logo_path = Path(__file__).parent / "logo.png"
+    if logo_path.exists():
+        st.image(str(logo_path), width=150)
+    else:
+        st.markdown("### ✨ GTF")
     st.caption(datetime.now().strftime("%A, %b %d"))
     st.markdown("---")
     
