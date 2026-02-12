@@ -203,6 +203,56 @@ with st.sidebar:
                 st.session_state.selected_dept = dk
                 st.rerun()
     
+    # Zoya suggestions section
+    st.markdown("---")
+    zoya_suggestions = [t for t in open_tasks if t.get("zoya_can_help")]
+    
+    if zoya_suggestions:
+        st.markdown(f"**✨ Zoya Can Help** ({len(zoya_suggestions)})")
+        for zt in zoya_suggestions[:5]:
+            with st.expander(f"📌 {zt['title'][:25]}...", expanded=False):
+                st.markdown(f"**{zt['title']}**")
+                st.caption(zt.get("zoya_suggestion", "I can help with this task"))
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("✅ Approve", key=f"zoya_approve_{zt['id']}", use_container_width=True):
+                        for t in data["tasks"]:
+                            if t["id"] == zt["id"]:
+                                t["zoya_approved"] = True
+                                t["zoya_status"] = "approved"
+                        save_tasks(data)
+                        st.rerun()
+                
+                with col2:
+                    if st.button("❌ Deny", key=f"zoya_deny_{zt['id']}", use_container_width=True):
+                        for t in data["tasks"]:
+                            if t["id"] == zt["id"]:
+                                t["zoya_can_help"] = False
+                                t["zoya_status"] = "denied"
+                        save_tasks(data)
+                        st.rerun()
+                
+                col3, col4 = st.columns(2)
+                with col3:
+                    if st.button("⏰ Remind", key=f"zoya_remind_{zt['id']}", use_container_width=True):
+                        for t in data["tasks"]:
+                            if t["id"] == zt["id"]:
+                                t["zoya_status"] = "remind_later"
+                        save_tasks(data)
+                        st.rerun()
+                
+                with col4:
+                    if st.button("💬 Chat", key=f"zoya_chat_{zt['id']}", use_container_width=True):
+                        for t in data["tasks"]:
+                            if t["id"] == zt["id"]:
+                                t["zoya_status"] = "needs_chat"
+                        save_tasks(data)
+                        st.rerun()
+    else:
+        st.markdown("**✨ Zoya Can Help**")
+        st.caption("No suggestions yet")
+    
     st.markdown("---")
     st.caption("Text Zoya to manage tasks")
 
