@@ -1,6 +1,5 @@
 """
-GTF Command Center v5
-Luxury. Clean. Classy.
+GTF Command Center v6
 """
 
 import streamlit as st
@@ -27,279 +26,226 @@ tasks = data.get("tasks", [])
 dept_labels = data.get("department_labels", {})
 today_str = date.today().isoformat()
 
-# Luxury styling - cream, charcoal, gold accents
+# Styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap');
     
     :root {
-        --bg-cream: #FAF9F6;
-        --bg-white: #FFFFFF;
-        --charcoal: #2C2C2C;
-        --charcoal-light: #4A4A4A;
-        --warm-gray: #8B8680;
-        --border: #E8E6E1;
-        --gold: #B8A088;
-        --gold-light: #D4C5B5;
-        --danger: #C45C5C;
-        --success: #6B8E6B;
+        --cream: #FAFAF8;
+        --white: #FFFFFF;
+        --charcoal: #1a1a1a;
+        --gray: #6b6b6b;
+        --light-gray: #e0e0e0;
+        --gold: #c9a87c;
+        --red: #c45c5c;
     }
     
-    .main { background: var(--bg-cream) !important; }
-    
-    .block-container { 
-        padding: 2.5rem 3rem !important; 
-        max-width: 1100px !important; 
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+        background-color: var(--cream) !important;
     }
     
-    #MainMenu, footer, .stDeployButton, header { visibility: hidden; }
-    
-    /* Sidebar */
-    [data-testid="stSidebar"] { 
-        background: var(--bg-white) !important; 
-        border-right: 1px solid var(--border) !important; 
+    .main .block-container {
+        background-color: var(--cream) !important;
+        padding: 2rem 3rem !important;
+        max-width: 1000px !important;
     }
     
-    [data-testid="stSidebar"] .block-container {
-        padding: 2rem 1.5rem !important;
+    section[data-testid="stSidebar"] {
+        background-color: var(--white) !important;
+        border-right: 1px solid var(--light-gray) !important;
     }
     
-    /* Typography */
+    section[data-testid="stSidebar"] > div {
+        background-color: var(--white) !important;
+    }
+    
+    #MainMenu, footer, header, .stDeployButton { display: none !important; }
+    
     h1, h2, h3 {
-        font-family: 'Cormorant Garamond', Georgia, serif !important;
+        font-family: 'Playfair Display', serif !important;
         color: var(--charcoal) !important;
-        font-weight: 500 !important;
     }
     
-    p, span, div, label {
-        font-family: 'Montserrat', sans-serif !important;
+    p, span, div, label, li {
+        font-family: 'DM Sans', sans-serif !important;
     }
     
-    /* Header */
-    .header-title {
-        font-family: 'Cormorant Garamond', Georgia, serif;
-        font-size: 2.5rem;
-        font-weight: 500;
-        color: var(--charcoal);
-        letter-spacing: 0.02em;
-        margin-bottom: 0.25rem;
-    }
-    
-    .header-subtitle {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.8rem;
-        color: var(--warm-gray);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        font-weight: 400;
-    }
-    
-    /* Stats */
-    .stats-row {
-        display: flex;
-        gap: 1.5rem;
-        margin: 2rem 0;
+    /* Stats cards */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin: 1.5rem 0 2rem 0;
     }
     
     .stat-card {
-        flex: 1;
-        background: var(--bg-white);
-        border: 1px solid var(--border);
+        background: var(--white);
+        border: 1px solid var(--light-gray);
         padding: 1.5rem;
         text-align: center;
     }
     
-    .stat-number {
-        font-family: 'Cormorant Garamond', Georgia, serif;
-        font-size: 2.5rem;
+    .stat-num {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.25rem;
         font-weight: 500;
         color: var(--charcoal);
-        line-height: 1;
     }
     
-    .stat-number.alert { color: var(--danger); }
+    .stat-num.red { color: var(--red); }
     
     .stat-label {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.65rem;
-        color: var(--warm-gray);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.7rem;
+        color: var(--gray);
         text-transform: uppercase;
-        letter-spacing: 0.15em;
-        margin-top: 0.75rem;
+        letter-spacing: 1px;
+        margin-top: 0.5rem;
     }
     
     /* Progress */
-    .progress-container {
-        margin: 2rem 0;
-    }
-    
-    .progress-text {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.7rem;
-        color: var(--warm-gray);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 0.5rem;
+    .progress-row {
         display: flex;
         justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--gray);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .progress-track {
+        height: 2px;
+        background: var(--light-gray);
+        margin-bottom: 2rem;
     }
     
     .progress-bar {
-        height: 3px;
-        background: var(--border);
-    }
-    
-    .progress-fill {
         height: 100%;
         background: var(--gold);
     }
     
-    /* Section headers */
-    .section-title {
-        font-family: 'Montserrat', sans-serif;
+    /* Section */
+    .section-header {
+        font-family: 'DM Sans', sans-serif;
         font-size: 0.7rem;
-        font-weight: 500;
-        color: var(--warm-gray);
+        font-weight: 600;
+        color: var(--gray);
         text-transform: uppercase;
-        letter-spacing: 0.15em;
-        margin: 2.5rem 0 1rem 0;
+        letter-spacing: 1.5px;
+        margin: 2rem 0 1rem 0;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--light-gray);
     }
     
-    /* Task cards */
-    .task-item {
-        background: var(--bg-white);
-        border: 1px solid var(--border);
-        padding: 1.25rem 1.5rem;
-        margin-bottom: 0.75rem;
+    /* Task */
+    .task {
+        background: var(--white);
+        border: 1px solid var(--light-gray);
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.6rem;
         display: flex;
-        align-items: flex-start;
         gap: 1rem;
-        transition: all 0.2s ease;
+        align-items: flex-start;
     }
     
-    .task-item:hover {
-        border-color: var(--gold-light);
-    }
-    
-    .task-priority {
-        width: 4px;
-        height: 40px;
+    .task-bar {
+        width: 3px;
+        min-height: 35px;
         flex-shrink: 0;
     }
     
-    .priority-high { background: var(--danger); }
-    .priority-medium { background: var(--gold); }
-    .priority-low { background: var(--gold-light); }
+    .task-bar.high { background: var(--red); }
+    .task-bar.medium { background: var(--gold); }
+    .task-bar.low { background: var(--light-gray); }
     
-    .task-content { flex: 1; }
+    .task-text {
+        flex: 1;
+    }
     
     .task-title {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'DM Sans', sans-serif;
         font-size: 0.9rem;
         font-weight: 500;
         color: var(--charcoal);
         line-height: 1.4;
-        margin-bottom: 0.35rem;
     }
     
     .task-meta {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.7rem;
-        color: var(--warm-gray);
-        letter-spacing: 0.03em;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.75rem;
+        color: var(--gray);
+        margin-top: 0.25rem;
     }
     
-    .task-meta .overdue { 
-        color: var(--danger); 
+    .task-meta .overdue {
+        color: var(--red);
         font-weight: 500;
-    }
-    
-    .task-meta .today { 
-        color: var(--charcoal); 
-        font-weight: 500;
-    }
-    
-    .task-done .task-title {
-        text-decoration: line-through;
-        color: var(--warm-gray);
     }
     
     /* Tabs */
     .stRadio > div {
+        flex-direction: row !important;
         gap: 0 !important;
-        border: 1px solid var(--border) !important;
         background: transparent !important;
-        padding: 0 !important;
-        display: inline-flex !important;
     }
     
-    .stRadio label {
-        font-family: 'Montserrat', sans-serif !important;
-        font-size: 0.7rem !important;
+    .stRadio > div > label {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 0.75rem !important;
         font-weight: 500 !important;
-        letter-spacing: 0.1em !important;
+        letter-spacing: 0.5px !important;
         text-transform: uppercase !important;
-        padding: 0.75rem 1.25rem !important;
-        border: none !important;
-        border-right: 1px solid var(--border) !important;
-        border-radius: 0 !important;
-        background: var(--bg-white) !important;
-        color: var(--warm-gray) !important;
-    }
-    
-    .stRadio label:last-child {
+        padding: 0.6rem 1.25rem !important;
+        border: 1px solid var(--light-gray) !important;
         border-right: none !important;
+        border-radius: 0 !important;
+        background: var(--white) !important;
+        color: var(--gray) !important;
+        margin: 0 !important;
     }
     
-    .stRadio label[data-checked="true"] {
+    .stRadio > div > label:last-child {
+        border-right: 1px solid var(--light-gray) !important;
+    }
+    
+    .stRadio > div > label[data-checked="true"] {
         background: var(--charcoal) !important;
-        color: var(--bg-white) !important;
+        color: var(--white) !important;
+        border-color: var(--charcoal) !important;
     }
     
-    /* Sidebar text */
-    .sidebar-section {
-        font-family: 'Montserrat', sans-serif;
+    /* Expander */
+    .stExpander {
+        border: 1px solid var(--light-gray) !important;
+        border-radius: 0 !important;
+        background: var(--white) !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .stExpander > details > summary {
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Sidebar */
+    .sidebar-title {
+        font-family: 'DM Sans', sans-serif;
         font-size: 0.65rem;
-        font-weight: 500;
-        color: var(--warm-gray);
+        font-weight: 600;
+        color: var(--gray);
         text-transform: uppercase;
-        letter-spacing: 0.15em;
+        letter-spacing: 1.5px;
         margin: 1.5rem 0 0.75rem 0;
     }
     
-    .sidebar-item {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.8rem;
-        color: var(--charcoal-light);
-        padding: 0.35rem 0;
-    }
-    
-    .sidebar-item strong {
-        color: var(--charcoal);
-    }
-    
-    /* Expanders */
-    .stExpander {
-        background: var(--bg-white) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 0 !important;
-    }
-    
-    .streamlit-expanderHeader {
-        font-family: 'Montserrat', sans-serif !important;
-        font-size: 0.8rem !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Empty state */
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: var(--warm-gray);
-        font-family: 'Montserrat', sans-serif;
+    .sidebar-row {
+        font-family: 'DM Sans', sans-serif;
         font-size: 0.85rem;
+        color: var(--charcoal);
+        padding: 0.3rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -316,61 +262,54 @@ progress = (len(done_tasks) / len(tasks) * 100) if tasks else 0
 with st.sidebar:
     logo_path = Path(__file__).parent / "logo.png"
     if logo_path.exists():
-        st.image(str(logo_path), width=160)
-    st.markdown("")
+        st.image(str(logo_path), width=150)
     
-    st.markdown('<div class="sidebar-section">Overview</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sidebar-item">Open Tasks: <strong>{len(open_tasks)}</strong></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sidebar-item">Due Today: <strong>{len(today_tasks)}</strong></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sidebar-item">Overdue: <strong>{len(overdue)}</strong></div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Overview</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sidebar-row">Open Tasks: <strong>{len(open_tasks)}</strong></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sidebar-row">Due Today: <strong>{len(today_tasks)}</strong></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sidebar-row">Overdue: <strong>{len(overdue)}</strong></div>', unsafe_allow_html=True)
     
-    st.markdown('<div class="sidebar-section">Departments</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Departments</div>', unsafe_allow_html=True)
     for dk, dn in dept_labels.items():
         c = len([t for t in open_tasks if t.get("department") == dk])
         if c > 0:
-            name = dn.split(' ', 1)[-1] if ' ' in dn else dn
-            st.markdown(f'<div class="sidebar-item">{name}: <strong>{c}</strong></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="sidebar-row">{dn}: <strong>{c}</strong></div>', unsafe_allow_html=True)
     
-    st.markdown("")
-    st.markdown("")
+    st.markdown("---")
     st.caption("Text Zoya to manage tasks")
 
-# Header
-st.markdown(f"""
-<div class="header-title">Command Center</div>
-<div class="header-subtitle">{datetime.now().strftime('%A, %B %d, %Y')}</div>
-""", unsafe_allow_html=True)
+# Main content
+st.markdown("## Command Center")
+st.caption(datetime.now().strftime("%A, %B %d, %Y"))
 
 # Progress
 st.markdown(f"""
-<div class="progress-container">
-    <div class="progress-text">
-        <span>Progress</span>
-        <span>{len(done_tasks)} of {len(tasks)} complete</span>
-    </div>
-    <div class="progress-bar">
-        <div class="progress-fill" style="width: {progress}%"></div>
-    </div>
+<div class="progress-row">
+    <span>Progress</span>
+    <span>{len(done_tasks)} of {len(tasks)} complete</span>
+</div>
+<div class="progress-track">
+    <div class="progress-bar" style="width:{progress}%"></div>
 </div>
 """, unsafe_allow_html=True)
 
 # Stats
 st.markdown(f"""
-<div class="stats-row">
+<div class="stats-container">
     <div class="stat-card">
-        <div class="stat-number">{len(open_tasks)}</div>
+        <div class="stat-num">{len(open_tasks)}</div>
         <div class="stat-label">Open</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number">{len(today_tasks)}</div>
+        <div class="stat-num">{len(today_tasks)}</div>
         <div class="stat-label">Today</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number {'alert' if overdue else ''}">{len(overdue)}</div>
+        <div class="stat-num {'red' if overdue else ''}">{len(overdue)}</div>
         <div class="stat-label">Overdue</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number">{len(high_p)}</div>
+        <div class="stat-num">{len(high_p)}</div>
         <div class="stat-label">Priority</div>
     </div>
 </div>
@@ -383,26 +322,24 @@ def show_task(task, show_dept=True):
     p = task.get("priority", "medium")
     due = task.get("due_date")
     dept = dept_labels.get(task.get("department", "quick"), "Quick")
-    done = task.get("done", False)
     
-    due_html = ""
+    due_text = ""
     if due:
         if due < today_str:
-            due_html = '<span class="overdue">Overdue</span>'
+            due_text = '<span class="overdue">Overdue</span>'
         elif due == today_str:
-            due_html = '<span class="today">Today</span>'
+            due_text = "Today"
         else:
-            due_html = due
+            due_text = due
     
-    dept_short = dept.split(' ', 1)[-1] if ' ' in dept else dept
-    meta_parts = [x for x in [due_html, dept_short if show_dept else None] if x]
+    meta = " · ".join([x for x in [due_text, dept if show_dept else None] if x])
     
     st.markdown(f"""
-    <div class="task-item {'task-done' if done else ''}">
-        <div class="task-priority priority-{p}"></div>
-        <div class="task-content">
+    <div class="task">
+        <div class="task-bar {p}"></div>
+        <div class="task-text">
             <div class="task-title">{task['title']}</div>
-            <div class="task-meta">{' · '.join(meta_parts)}</div>
+            <div class="task-meta">{meta}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -410,30 +347,31 @@ def show_task(task, show_dept=True):
 # Views
 if view == "Today":
     if overdue:
-        st.markdown('<div class="section-title">Overdue</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Overdue</div>', unsafe_allow_html=True)
         for t in sorted(overdue, key=lambda x: x.get("priority") != "high"):
             show_task(t)
     
     if today_tasks:
-        st.markdown('<div class="section-title">Due Today</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Due Today</div>', unsafe_allow_html=True)
         for t in sorted(today_tasks, key=lambda x: x.get("priority") != "high"):
             show_task(t)
     
     upcoming = [t for t in open_tasks if t.get("due_date") and t.get("due_date") > today_str][:5]
     if upcoming:
-        st.markdown('<div class="section-title">Upcoming</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Coming Up</div>', unsafe_allow_html=True)
         for t in sorted(upcoming, key=lambda x: x.get("due_date")):
             show_task(t)
     
     if not overdue and not today_tasks:
-        st.markdown('<div class="empty-state">Nothing due today ✨</div>', unsafe_allow_html=True)
+        st.info("Nothing due today")
 
 elif view == "All":
-    st.markdown('<div class="section-title">All Tasks</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">All Tasks</div>', unsafe_allow_html=True)
     for t in sorted(open_tasks, key=lambda x: (x.get("priority") != "high", x.get("due_date") or "9999")):
         show_task(t)
 
 elif view == "Department":
+    st.markdown('<div class="section-header">By Department</div>', unsafe_allow_html=True)
     for dk, dn in dept_labels.items():
         dept_tasks = [t for t in open_tasks if t.get("department") == dk]
         if dept_tasks:
@@ -443,8 +381,8 @@ elif view == "Department":
 
 elif view == "Done":
     if done_tasks:
-        st.markdown('<div class="section-title">Completed</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Completed</div>', unsafe_allow_html=True)
         for t in sorted(done_tasks, key=lambda x: x.get("completed_date", ""), reverse=True)[:30]:
             show_task(t)
     else:
-        st.markdown('<div class="empty-state">No completed tasks yet</div>', unsafe_allow_html=True)
+        st.info("No completed tasks yet")

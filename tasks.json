@@ -14,18 +14,18 @@
     "quick"
   ],
   "department_labels": {
-    "customers": "\ud83d\udecd\ufe0f Customers",
-    "customs_shipping": "\ud83d\udce6 Customs & Shipping",
-    "brand_outreach": "\ud83c\udfaf Brand Outreach",
-    "brand_followups": "\ud83d\udd04 Brand Follow-ups",
-    "content": "\ud83d\udcf8 Content (Instagram)",
-    "legal": "\u2696\ufe0f Legal & Contracts",
-    "product": "\ud83d\udcbb Product (Dev/Images/Attributes)",
-    "business": "\ud83d\udccb Business Planning",
-    "fundraising": "\ud83d\udcb0 Fundraising",
-    "hiring": "\ud83d\udc65 Hiring",
-    "finance": "\ud83d\udcb5 Finance & Accounting",
-    "quick": "\u26a1 Quick Tasks"
+    "customers": "Customers",
+    "customs_shipping": "Customs & Shipping",
+    "brand_outreach": "Brand Outreach",
+    "brand_followups": "Brand Follow-ups",
+    "content": "Content",
+    "legal": "Legal & Contracts",
+    "product": "Product",
+    "business": "Business Planning",
+    "fundraising": "Fundraising",
+    "hiring": "Hiring",
+    "finance": "Finance & Accounting",
+    "quick": "Quick Tasks"
   },
   "tasks": [
     {
