@@ -321,22 +321,41 @@ if st.session_state.show_calendar:
                     # Use popover for each task
                     with st.popover(f"{'✓ ' if is_selected else ''}{label}", use_container_width=True):
                         st.markdown(f"**{t['title']}**")
-                        st.caption(f"Dept: {dept_labels.get(dk, 'Quick')}")
+                        st.caption(f"Dept: {dept_labels.get(dk, 'Quick')} · Due: {t.get('due_date', 'Not set')}")
                         
-                        if st.button("✅ Mark Done", key=f"pop_done_{t['id']}", use_container_width=True):
-                            for task in data["tasks"]:
-                                if task["id"] == t["id"]:
-                                    task["done"] = True
-                                    task["completed_date"] = today_str
-                            save_tasks(data)
-                            st.rerun()
+                        # Notes section
+                        current_notes = t.get("notes", "")
+                        if current_notes:
+                            st.markdown(f"📝 *{current_notes}*")
                         
-                        if st.button("→ Tomorrow", key=f"pop_tmrw_{t['id']}", use_container_width=True):
-                            for task in data["tasks"]:
-                                if task["id"] == t["id"]:
-                                    task["due_date"] = (today + timedelta(days=1)).isoformat()
-                            save_tasks(data)
-                            st.rerun()
+                        new_notes = st.text_area("Notes", value=current_notes, key=f"notes_{t['id']}", height=80, placeholder="Add context, details, links...")
+                        if new_notes != current_notes:
+                            if st.button("💾 Save Notes", key=f"save_notes_{t['id']}", use_container_width=True):
+                                for task in data["tasks"]:
+                                    if task["id"] == t["id"]:
+                                        task["notes"] = new_notes
+                                save_tasks(data)
+                                st.rerun()
+                        
+                        st.markdown("---")
+                        
+                        col_a, col_b = st.columns(2)
+                        with col_a:
+                            if st.button("✅ Done", key=f"pop_done_{t['id']}", use_container_width=True):
+                                for task in data["tasks"]:
+                                    if task["id"] == t["id"]:
+                                        task["done"] = True
+                                        task["completed_date"] = today_str
+                                save_tasks(data)
+                                st.rerun()
+                        
+                        with col_b:
+                            if st.button("→ Tomorrow", key=f"pop_tmrw_{t['id']}", use_container_width=True):
+                                for task in data["tasks"]:
+                                    if task["id"] == t["id"]:
+                                        task["due_date"] = (today + timedelta(days=1)).isoformat()
+                                save_tasks(data)
+                                st.rerun()
                         
                         new_date = st.date_input("Move to", value=d, key=f"pop_date_{t['id']}", label_visibility="collapsed")
                         if st.button("Move to date", key=f"pop_move_{t['id']}", use_container_width=True):
@@ -373,6 +392,23 @@ if st.session_state.show_calendar:
             with ov_cols[idx % 4]:
                 with st.popover(label, use_container_width=True):
                     st.markdown(f"**{t['title']}**")
+                    st.caption(f"Dept: {dept_labels.get(dk, 'Quick')} · Overdue: {t.get('due_date', '')}")
+                    
+                    # Notes section
+                    current_notes = t.get("notes", "")
+                    if current_notes:
+                        st.markdown(f"📝 *{current_notes}*")
+                    
+                    new_notes = st.text_area("Notes", value=current_notes, key=f"ov_notes_{t['id']}", height=60, placeholder="Add context...")
+                    if new_notes != current_notes:
+                        if st.button("💾 Save", key=f"ov_save_{t['id']}", use_container_width=True):
+                            for task in data["tasks"]:
+                                if task["id"] == t["id"]:
+                                    task["notes"] = new_notes
+                            save_tasks(data)
+                            st.rerun()
+                    
+                    st.markdown("---")
                     
                     if st.button("✅ Done", key=f"ov_done_{t['id']}", use_container_width=True):
                         for task in data["tasks"]:
