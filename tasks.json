@@ -273,16 +273,6 @@
       "created": "2026-02-12T16:00:00"
     },
     {
-      "id": "g024",
-      "title": "Meeting with attribute extractors",
-      "department": "product",
-      "priority": "medium",
-      "due_date": "2026-02-16",
-      "notes": "",
-      "done": false,
-      "created": "2026-02-12T16:00:00"
-    },
-    {
       "id": "g025",
       "title": "Scope of work for Rahul and Shivraj",
       "department": "product",
