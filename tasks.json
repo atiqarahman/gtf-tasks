@@ -378,8 +378,9 @@
       "priority": "high",
       "due_date": "2026-02-14",
       "notes": "Include: setup videos, use cases for jewelry business, benefits",
-      "done": false,
-      "created": "2026-02-13T00:47:24.639910"
+      "done": true,
+      "created": "2026-02-13T00:47:24.639910",
+      "completed_date": "2026-02-13"
     },
     {
       "id": "20260213063740",
