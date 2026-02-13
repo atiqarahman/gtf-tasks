@@ -351,8 +351,9 @@
       "priority": "high",
       "due_date": "2026-02-13",
       "notes": "",
-      "done": false,
-      "created": "2026-02-12T17:53:05.668365"
+      "done": true,
+      "created": "2026-02-12T17:53:05.668365",
+      "completed_date": "2026-02-13"
     },
     {
       "id": "20260212190817",
