@@ -168,8 +168,9 @@
       "priority": "medium",
       "due_date": "2026-02-13",
       "notes": "Speak w Mrigranka",
-      "done": false,
-      "created": "2026-02-12T16:00:00"
+      "done": true,
+      "created": "2026-02-12T16:00:00",
+      "completed_date": "2026-02-13"
     },
     {
       "id": "g014",
