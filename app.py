@@ -471,10 +471,37 @@ with st.sidebar:
     st.caption("Text Zoya to manage tasks")
 
 # Header
-col1, col2 = st.columns([3, 1])
+col1, col2, col3 = st.columns([2, 1, 1])
 with col1:
     st.markdown("## Command Center")
 with col2:
+    # Add Task Button
+    with st.popover("➕ Add Task", use_container_width=True):
+        new_title = st.text_input("Task title", key="new_task_title", placeholder="What needs to be done?")
+        new_dept = st.selectbox("Department", list(dept_labels.keys()), 
+            format_func=lambda x: dept_labels.get(x, x), key="new_task_dept")
+        new_priority = st.selectbox("Priority", ["high", "medium", "low"], index=1, key="new_task_priority")
+        new_due = st.date_input("Due date", value=today, key="new_task_due")
+        new_notes = st.text_input("Notes (optional)", key="new_task_notes")
+        
+        if st.button("✅ Create Task", key="create_task_btn", use_container_width=True):
+            if new_title.strip():
+                new_task = {
+                    "id": datetime.now().strftime("%Y%m%d%H%M%S"),
+                    "title": new_title.strip(),
+                    "department": new_dept,
+                    "priority": new_priority,
+                    "due_date": new_due.isoformat(),
+                    "notes": new_notes,
+                    "done": False,
+                    "created": datetime.now().isoformat()
+                }
+                data["tasks"].append(new_task)
+                save_tasks(data)
+                st.rerun()
+            else:
+                st.warning("Please enter a task title")
+with col3:
     if st.button("📅 Calendar" if not st.session_state.show_calendar else "📋 List", use_container_width=True):
         st.session_state.show_calendar = not st.session_state.show_calendar
         st.rerun()
@@ -584,19 +611,32 @@ if st.session_state.show_calendar:
                     
                     # Use popover for each task
                     with st.popover(f"{'✓ ' if is_selected else ''}{label}", use_container_width=True):
-                        st.markdown(f"**{t['title']}**")
-                        st.caption(f"Dept: {dept_labels.get(dk, 'Quick')} · Due: {t.get('due_date', 'Not set')}")
+                        # Editable title
+                        edit_title = st.text_input("Title", value=t['title'], key=f"cal_title_{t['id']}")
+                        
+                        # Department selector
+                        edit_dept = st.selectbox("Department", list(dept_labels.keys()),
+                            index=list(dept_labels.keys()).index(dk) if dk in dept_labels else 0,
+                            format_func=lambda x: dept_labels.get(x, x),
+                            key=f"cal_dept_{t['id']}")
+                        
+                        # Priority
+                        edit_priority = st.selectbox("Priority", ["high", "medium", "low"],
+                            index=["high", "medium", "low"].index(t.get("priority", "medium")),
+                            key=f"cal_pri_{t['id']}")
                         
                         # Notes section
                         current_notes = t.get("notes", "")
-                        if current_notes:
-                            st.markdown(f"📝 *{current_notes}*")
+                        new_notes = st.text_area("Notes", value=current_notes, key=f"cal_notes_{t['id']}", height=80, placeholder="Add context, details, links...")
                         
-                        new_notes = st.text_area("Notes", value=current_notes, key=f"notes_{t['id']}", height=80, placeholder="Add context, details, links...")
-                        if new_notes != current_notes:
-                            if st.button("💾 Save Notes", key=f"save_notes_{t['id']}", use_container_width=True):
+                        # Save changes button
+                        if edit_title != t['title'] or edit_dept != dk or edit_priority != t.get("priority", "medium") or new_notes != current_notes:
+                            if st.button("💾 Save Changes", key=f"cal_save_{t['id']}", use_container_width=True):
                                 for task in data["tasks"]:
                                     if task["id"] == t["id"]:
+                                        task["title"] = edit_title
+                                        task["department"] = edit_dept
+                                        task["priority"] = edit_priority
                                         task["notes"] = new_notes
                                 save_tasks(data)
                                 st.rerun()
@@ -626,6 +666,12 @@ if st.session_state.show_calendar:
                             for task in data["tasks"]:
                                 if task["id"] == t["id"]:
                                     task["due_date"] = new_date.isoformat()
+                            save_tasks(data)
+                            st.rerun()
+                        
+                        st.markdown("---")
+                        if st.button("🗑️ Delete Task", key=f"cal_del_{t['id']}", use_container_width=True):
+                            data["tasks"] = [task for task in data["tasks"] if task["id"] != t["id"]]
                             save_tasks(data)
                             st.rerun()
             else:
@@ -738,7 +784,13 @@ else:
             """, unsafe_allow_html=True)
         
         with col3:
-            with st.popover("Edit"):
+            with st.popover("✏️"):
+                # Edit title
+                new_title = st.text_input("Title", value=task["title"], key=f"title_{task['id']}")
+                new_dept = st.selectbox("Department", list(dept_labels.keys()),
+                    index=list(dept_labels.keys()).index(task.get("department", "quick")) if task.get("department") in dept_labels else 0,
+                    format_func=lambda x: dept_labels.get(x, x),
+                    key=f"dept_{task['id']}")
                 new_due = st.date_input("Due", 
                     value=date.fromisoformat(task["due_date"]) if task.get("due_date") else None, 
                     key=f"due_{task['id']}")
@@ -748,14 +800,23 @@ else:
                 new_notes = st.text_area("Notes", value=task.get("notes", ""), 
                     key=f"notes_{task['id']}", height=60)
                 
-                if st.button("Save", key=f"save_{task['id']}"):
-                    for t in data["tasks"]:
-                        if t["id"] == task["id"]:
-                            t["due_date"] = new_due.isoformat() if new_due else None
-                            t["priority"] = new_priority
-                            t["notes"] = new_notes
-                    save_tasks(data)
-                    st.rerun()
+                col_save, col_del = st.columns(2)
+                with col_save:
+                    if st.button("💾 Save", key=f"save_{task['id']}", use_container_width=True):
+                        for t in data["tasks"]:
+                            if t["id"] == task["id"]:
+                                t["title"] = new_title
+                                t["department"] = new_dept
+                                t["due_date"] = new_due.isoformat() if new_due else None
+                                t["priority"] = new_priority
+                                t["notes"] = new_notes
+                        save_tasks(data)
+                        st.rerun()
+                with col_del:
+                    if st.button("🗑️ Delete", key=f"del_{task['id']}", use_container_width=True):
+                        data["tasks"] = [t for t in data["tasks"] if t["id"] != task["id"]]
+                        save_tasks(data)
+                        st.rerun()
     
     if view == "Today":
         all_today = filter_tasks(overdue + today_tasks)
