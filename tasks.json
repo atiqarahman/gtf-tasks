@@ -48,7 +48,8 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can draft a brand partnership contract template covering exclusivity, commission rates, image rights, and terms. You can review then send to lawyer."
+      "zoya_suggestion": "I can draft a brand partnership contract template covering exclusivity, commission rates, image rights, and terms. You can review then send to lawyer.",
+      "reminder_scheduled": "2026-02-18T09:00:00"
     },
     {
       "id": "g003",
@@ -438,6 +439,20 @@
       "is_zoya_reminder": true,
       "original_task_id": "g014",
       "remind_at": "2026-02-14T09:00:00",
+      "remind_sent": false
+    },
+    {
+      "id": "20260213065610g002",
+      "title": "\ud83d\udcac Chat with Zoya about: Make brand contracts with lawy",
+      "department": "legal",
+      "priority": "high",
+      "due_date": "2026-02-18",
+      "notes": "Discuss Zoya's suggestion: I can draft a brand partnership contract template covering exclusivity, commission rates, image rights, and terms. You can review then send to lawyer.",
+      "done": false,
+      "created": "2026-02-13T06:56:10.831736",
+      "is_zoya_reminder": true,
+      "original_task_id": "g002",
+      "remind_at": "2026-02-18T09:00:00",
       "remind_sent": false
     }
   ]
