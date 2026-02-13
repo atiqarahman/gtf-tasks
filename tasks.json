@@ -180,7 +180,8 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can create a deck tailored for international brands \u2014 different value prop, logistics story, market opportunity. Tell me the angle you want."
+      "zoya_suggestion": "I can create a deck tailored for international brands \u2014 different value prop, logistics story, market opportunity. Tell me the angle you want.",
+      "reminder_scheduled": "2026-02-14T09:00:00"
     },
     {
       "id": "g015",
@@ -423,6 +424,20 @@
       "is_zoya_reminder": true,
       "original_task_id": "g009",
       "remind_at": "2026-02-13T08:55:06.205813",
+      "remind_sent": false
+    },
+    {
+      "id": "20260213065524g014",
+      "title": "\ud83d\udcac Chat with Zoya about: International brands deck - cr",
+      "department": "fundraising",
+      "priority": "high",
+      "due_date": "2026-02-14",
+      "notes": "Discuss Zoya's suggestion: I can create a deck tailored for international brands \u2014 different value prop, logistics story, market opportunity. Tell me the angle you want.",
+      "done": false,
+      "created": "2026-02-13T06:55:24.763815",
+      "is_zoya_reminder": true,
+      "original_task_id": "g014",
+      "remind_at": "2026-02-14T09:00:00",
       "remind_sent": false
     }
   ]
