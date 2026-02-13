@@ -606,7 +606,7 @@ if st.session_state.show_calendar:
                 for t in day_tasks:
                     dk = t.get("department", "quick")
                     color = dept_colors.get(dk, "#6B7280")
-                    label = t["title"][:18] + "..." if len(t["title"]) > 18 else t["title"]
+                    label = t["title"][:40] + "..." if len(t["title"]) > 40 else t["title"]
                     is_selected = st.session_state.selected_task == t["id"]
                     
                     # Use popover for each task
@@ -697,7 +697,7 @@ if st.session_state.show_calendar:
         for idx, t in enumerate(overdue_filtered[:12]):
             dk = t.get("department", "quick")
             color = dept_colors.get(dk, "#6B7280")
-            label = t["title"][:22] + "..." if len(t["title"]) > 22 else t["title"]
+            label = t["title"][:40] + "..." if len(t["title"]) > 40 else t["title"]
             
             with ov_cols[idx % 4]:
                 with st.popover(label, use_container_width=True):
