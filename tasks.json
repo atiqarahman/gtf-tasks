@@ -315,16 +315,6 @@
       "created": "2026-02-12T16:00:00"
     },
     {
-      "id": "g029",
-      "title": "Send new API key to Mukesh",
-      "department": "product",
-      "priority": "high",
-      "due_date": "2026-02-13",
-      "notes": "Old key was exposed",
-      "done": false,
-      "created": "2026-02-12T16:50:00"
-    },
-    {
       "id": "20260212165457",
       "title": "Sort out WhatsApp method for Muskaan",
       "department": "brand_outreach",
