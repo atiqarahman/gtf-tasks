@@ -123,7 +123,8 @@
       "done": false,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve."
+      "zoya_suggestion": "I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve.",
+      "reminder_scheduled": "2026-02-13T08:55:06.205813"
     },
     {
       "id": "g010",
@@ -409,6 +410,20 @@
       "created": "2026-02-13T10:53:19.113722",
       "zoya_can_help": true,
       "zoya_suggestion": "I can compile the logistics deep dive + specific questions for Zonos into a polished PDF. Just say go."
+    },
+    {
+      "id": "20260213065506g009",
+      "title": "\ud83d\udcac Chat with Zoya about: Job description for Head of Te",
+      "department": "hiring",
+      "priority": "high",
+      "due_date": "2026-02-13",
+      "notes": "Discuss Zoya's suggestion: I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve.",
+      "done": false,
+      "created": "2026-02-13T06:55:06.205836",
+      "is_zoya_reminder": true,
+      "original_task_id": "g009",
+      "remind_at": "2026-02-13T08:55:06.205813",
+      "remind_sent": false
     }
   ]
 }
