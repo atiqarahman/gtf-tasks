@@ -337,8 +337,9 @@
       "priority": "medium",
       "due_date": "2026-02-13",
       "notes": "",
-      "done": false,
-      "created": "2026-02-12T17:40:55.788081"
+      "done": true,
+      "created": "2026-02-12T17:40:55.788081",
+      "completed_date": "2026-02-13"
     },
     {
       "id": "20260212175305",
