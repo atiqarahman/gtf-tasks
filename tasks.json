@@ -77,10 +77,11 @@
       "priority": "low",
       "due_date": "2026-02-13",
       "notes": "Zoya task",
-      "done": false,
+      "done": true,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can write a script to match SKUs with images in Google Drive. Just need Drive folder access and the SKU list format."
+      "zoya_suggestion": "I can write a script to match SKUs with images in Google Drive. Just need Drive folder access and the SKU list format.",
+      "completed_date": "2026-02-13"
     },
     {
       "id": "g006",
