@@ -396,6 +396,18 @@
       "notes": "tharun x atiqa Monday, February 16 \u00b7 2:00 \u2013 3:00pm Time zone: Asia/Dubai Google Meet joining info Video call link: https://meet.google.com/wbj-hykt-rzy Or dial: \u202a(US) +1 262-727-4010\u202c PIN: \u202a826 588 855\u202c# More phone numbers: https://tel.meet/wbj-hykt-rzy?pin=7273540916800",
       "done": false,
       "created": "2026-02-13T06:39:23.289934"
+    },
+    {
+      "id": "20260213105319",
+      "title": "Send Zonos comprehensive document about shipping & customs issues",
+      "department": "customs_shipping",
+      "priority": "high",
+      "due_date": "2026-02-13",
+      "notes": "Prep for meeting on Feb 16. Reference: GTF_Logistics_Deep_Dive.md",
+      "done": false,
+      "created": "2026-02-13T10:53:19.113722",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can compile the logistics deep dive + specific questions for Zonos into a polished PDF. Just say go."
     }
   ]
 }
