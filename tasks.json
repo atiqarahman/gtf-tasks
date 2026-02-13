@@ -254,16 +254,6 @@
       "created": "2026-02-12T16:00:00"
     },
     {
-      "id": "g022",
-      "title": "Follow up with Abdul",
-      "department": "customs_shipping",
-      "priority": "high",
-      "due_date": "2026-02-13",
-      "notes": "PRIORITY - shipping related",
-      "done": false,
-      "created": "2026-02-12T16:00:00"
-    },
-    {
       "id": "g023",
       "title": "Planning front end of website",
       "department": "product",
