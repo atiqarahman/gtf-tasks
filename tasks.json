@@ -127,7 +127,9 @@
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
       "zoya_suggestion": "I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve.",
-      "reminder_scheduled": "2026-02-13T08:55:06.205813"
+      "reminder_scheduled": "2026-02-13T08:55:06.205813",
+      "zoya_status": "chat_now",
+      "zoya_chat_requested_at": "2026-02-13T16:48:50.552422"
     },
     {
       "id": "g010",
