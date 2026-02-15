@@ -439,6 +439,20 @@ with st.sidebar:
     
     st.markdown("---")
     
+    # Active Cron Jobs
+    st.markdown("**⏰ Active Automations**")
+    cron_jobs = [
+        {"name": "Brand Outreach", "time": "9am daily", "status": "✅"},
+        {"name": "Brand Follow-ups", "time": "11am daily", "status": "✅"},
+        {"name": "Inbox Check", "time": "10am/2pm/6pm", "status": "✅"},
+        {"name": "Calendly Check", "time": "9am/1pm/5pm/9pm", "status": "✅"},
+        {"name": "Evening Summary", "time": "9pm daily", "status": "✅"},
+    ]
+    for job in cron_jobs:
+        st.caption(f"{job['status']} **{job['name']}** — {job['time']}")
+    
+    st.markdown("---")
+    
     # Quick actions - Google Meet
     st.markdown("**Quick Meeting**")
     st.link_button("📹 Start Meet Now", "https://meet.google.com/new", use_container_width=True)
