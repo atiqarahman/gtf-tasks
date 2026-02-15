@@ -111,8 +111,8 @@
       "title": "Speak to Shopify",
       "department": "product",
       "priority": "high",
-      "due_date": "2026-02-14",
-      "notes": "PRIORITY",
+      "due_date": "2026-02-16",
+      "notes": "PRIORITY - Calendar: 9:00-10:00am Feb 16",
       "done": false,
       "created": "2026-02-12T16:00:00"
     },
@@ -324,7 +324,7 @@
       "title": "Sort out WhatsApp method for Muskaan",
       "department": "brand_outreach",
       "priority": "high",
-      "due_date": "2026-02-13",
+      "due_date": "2026-02-19",
       "notes": "",
       "done": false,
       "created": "2026-02-12T16:54:57.461223"
