@@ -122,14 +122,15 @@
       "department": "hiring",
       "priority": "high",
       "due_date": "2026-02-13",
-      "notes": "Atiqa + Zoya",
-      "done": false,
+      "notes": "JD drafted: /Users/atiqarahman/clawd/gtf-hiring/Head_of_Tech_JD.md",
+      "done": true,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
       "zoya_suggestion": "I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve.",
       "reminder_scheduled": "2026-02-13T08:55:06.205813",
-      "zoya_status": "chat_now",
-      "zoya_chat_requested_at": "2026-02-13T16:48:50.552422"
+      "zoya_status": "completed",
+      "zoya_chat_requested_at": "2026-02-13T16:48:50.552422",
+      "completed_date": "2026-02-13"
     },
     {
       "id": "g010",
@@ -438,7 +439,7 @@
       "is_zoya_reminder": true,
       "original_task_id": "g009",
       "remind_at": "2026-02-13T08:55:06.205813",
-      "remind_sent": false
+      "remind_sent": true
     },
     {
       "id": "20260213065524g014",
@@ -452,7 +453,7 @@
       "is_zoya_reminder": true,
       "original_task_id": "g014",
       "remind_at": "2026-02-14T09:00:00",
-      "remind_sent": false
+      "remind_sent": true
     },
     {
       "id": "20260213065610g002",
