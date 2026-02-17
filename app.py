@@ -554,8 +554,8 @@ if st.session_state.get("show_file_tools"):
             st.rerun()
     
     st.markdown("---")
-    st.markdown("**CSV → Shopify Converter v3**")
-    st.caption("Official Shopify 2024 format (57 cols) + GTF attributes (81 cols) = 138 total")
+    st.markdown("**CSV → Shopify Converter v4**")
+    st.caption("Official Shopify 2024 format (57 cols) + GTF Attribute Schema v2 (32 cols) = 89 total")
     
     uploaded_file = st.file_uploader("Choose CSV file", type=["csv"], key="csv_upload")
     vendor_name = st.text_input("Brand/Vendor Name", value="", placeholder="e.g. Try On Dress")
@@ -587,33 +587,25 @@ if st.session_state.get("show_file_tools"):
                 "Google Shopping / Custom label 4",
             ]
             
-            # GTF Attribute columns - 81 columns
+            # GTF Attribute Schema v2 columns - 32 columns
             GTF_ATTRIBUTE_COLUMNS = [
-                "gtf_product_type", "gtf_intended_gender_line", "gtf_primary_color",
-                "gtf_secondary_accent_colors", "gtf_color_temperature", "gtf_shade_depth",
-                "gtf_pattern_type", "gtf_pattern_scale", "gtf_print_graphic_placement",
-                "gtf_branding_visibility", "gtf_brand_identifier", "gtf_material_family",
-                "gtf_material_finish_handfeel", "gtf_fabric_weight", "gtf_stretch", "gtf_texture",
-                "gtf_transparency", "gtf_lining_present", "gtf_lining_type", "gtf_overall_silhouette",
-                "gtf_fit_descriptor", "gtf_garment_length", "gtf_rise", "gtf_inseam_hem_style",
-                "gtf_collar_type", "gtf_neckline_type", "gtf_closure_type", "gtf_closure_placement",
-                "gtf_hardware_color_finish", "gtf_zipper_details", "gtf_sleeve_type",
-                "gtf_sleeve_length", "gtf_cuff_style", "gtf_hem_style", "gtf_pocket_count",
-                "gtf_pocket_placement", "gtf_pocket_style", "gtf_seams_paneling", "gtf_stitch_color",
-                "gtf_shoulder_structure", "gtf_pleats_darts", "gtf_pleat_dart_location",
-                "gtf_vent_slit_details", "gtf_distressing", "gtf_wash", "gtf_embellishments",
-                "gtf_embellishment_density", "gtf_embellishment_placement", "gtf_embroidery",
-                "gtf_embroidery_motif_type", "gtf_embroidery_placement", "gtf_graphic_text",
-                "gtf_motif_theme", "gtf_style_vibe_tags", "gtf_seasonality", "gtf_occasion",
-                "gtf_price_tier_cue", "gtf_unique_identifying_features", "gtf_body_type_flattery",
-                "gtf_figure_emphasis", "gtf_size_run_tendency", "gtf_fit_category",
-                "gtf_bust_accommodation", "gtf_petite_friendly", "gtf_tall_friendly",
-                "gtf_style_archetype", "gtf_celebrity_reference", "gtf_trend_velocity",
-                "gtf_style_persona", "gtf_pinterest_aesthetic", "gtf_occasion_specific",
-                "gtf_cultural_context", "gtf_modesty_level", "gtf_destination_suitability",
-                "gtf_event_suitability", "gtf_formality_level", "gtf_versatility_score",
-                "gtf_complete_the_look", "gtf_frequently_paired_with", "gtf_shopper_mindset",
-                "gtf_key_selling_point",
+                # Hard attributes (factual)
+                "gtf_category", "gtf_primary_color", "gtf_secondary_color", "gtf_silhouette",
+                "gtf_length", "gtf_neckline", "gtf_sleeve_length", "gtf_pattern",
+                # Soft attributes (subjective/vibe)
+                "gtf_vibe", "gtf_occasion", "gtf_style_references", "gtf_destination",
+                "gtf_style_persona", "gtf_pinterest_aesthetic", "gtf_event_suitability",
+                "gtf_shopper_mindset", "gtf_key_selling_point",
+                # Celebrity reference
+                "gtf_celebrity_detected", "gtf_celebrity_name", "gtf_celebrity_type",
+                "gtf_celebrity_style_context",
+                # Search intent
+                "gtf_primary_piece", "gtf_secondary_pieces", "gtf_overall_aesthetic",
+                "gtf_color_palette", "gtf_key_attributes_to_match",
+                # Meta
+                "gtf_extraction_mode", "gtf_confidence", "gtf_extraction_notes",
+                # Additional useful
+                "gtf_google_drive_link", "gtf_hs_code", "gtf_care_instructions",
             ]
             
             ALL_COLUMNS = SHOPIFY_COLUMNS + GTF_ATTRIBUTE_COLUMNS
@@ -641,6 +633,7 @@ if st.session_state.get("show_file_tools"):
                 wash_care = (row.get('Wash care') or row.get('Care Instructions') or '').strip()
                 weight_raw = (row.get('Average Weight (kg)') or row.get('Weight (kg)') or '').strip()
                 hs_code = (row.get('HS Code') or row.get('Hs Code') or '').strip()
+                image_link = (row.get('Product Link (Google Drive/Shopify)') or row.get('Image URL') or row.get('Google Drive Link') or '').strip()
                 
                 # Parse weight
                 try:
@@ -695,6 +688,7 @@ if st.session_state.get("show_file_tools"):
                         "Weight unit for display": "g",
                         "Requires shipping": "TRUE",
                         "Fulfillment service": "manual",
+                        "Product image URL": image_link,
                         "Image position": "1",
                         "Image alt text": f"{title} {color}",
                         "Gift card": "FALSE",
@@ -708,10 +702,21 @@ if st.session_state.get("show_file_tools"):
                         "Google Shopping / Condition": "New",
                         "Google Shopping / Custom product": "FALSE",
                         "Google Shopping / Custom label 0": hs_code,
-                        # Pre-fill some GTF attributes
+                        # Pre-fill GTF attributes (Schema v2)
+                        "gtf_category": category.lower(),
                         "gtf_primary_color": color.lower(),
-                        "gtf_material_family": material.split()[0].lower() if material else "",
-                        "gtf_product_type": category.lower(),
+                        "gtf_secondary_color": "",
+                        "gtf_silhouette": "",
+                        "gtf_length": option2_value.lower() if option2_value else "",
+                        "gtf_neckline": "",
+                        "gtf_sleeve_length": "",
+                        "gtf_pattern": "",
+                        "gtf_primary_piece": category.lower(),
+                        "gtf_color_palette": color.lower(),
+                        "gtf_extraction_mode": "catalog",
+                        "gtf_google_drive_link": image_link,
+                        "gtf_hs_code": hs_code,
+                        "gtf_care_instructions": wash_care,
                     })
                 else:
                     shopify_row.update({
@@ -739,7 +744,7 @@ if st.session_state.get("show_file_tools"):
                 writer.writerows(shopify_rows)
                 
                 st.success(f"✅ Converted {len(products)} products ({len(shopify_rows)} variants)")
-                st.info(f"📊 138 columns: 57 Shopify + 81 GTF attributes")
+                st.info(f"📊 89 columns: 57 Shopify + 32 GTF attributes (Schema v2)")
                 
                 st.download_button(
                     label="📥 Download Shopify CSV",
