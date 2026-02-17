@@ -554,8 +554,8 @@ if st.session_state.get("show_file_tools"):
             st.rerun()
     
     st.markdown("---")
-    st.markdown("**CSV → Shopify Converter**")
-    st.caption("Upload a brand CSV file to convert it to Shopify import format")
+    st.markdown("**CSV → Shopify Converter v3**")
+    st.caption("Official Shopify 2024 format (57 cols) + GTF attributes (81 cols) = 138 total")
     
     uploaded_file = st.file_uploader("Choose CSV file", type=["csv"], key="csv_upload")
     vendor_name = st.text_input("Brand/Vendor Name", value="", placeholder="e.g. Try On Dress")
@@ -566,8 +566,60 @@ if st.session_state.get("show_file_tools"):
             import re
             import io
             
+            # Official Shopify columns (2024 format) - 57 columns
+            SHOPIFY_COLUMNS = [
+                "Title", "URL handle", "Description", "Vendor", "Product category", "Type", "Tags",
+                "Published on online store", "Status", "SKU", "Barcode", "Option1 name", "Option1 value",
+                "Option1 Linked To", "Option2 name", "Option2 value", "Option2 Linked To", "Option3 name",
+                "Option3 value", "Option3 Linked To", "Price", "Compare-at price", "Cost per item",
+                "Charge tax", "Tax code", "Unit price total measure", "Unit price total measure unit",
+                "Unit price base measure", "Unit price base measure unit", "Inventory tracker",
+                "Inventory quantity", "Continue selling when out of stock", "Weight value (grams)",
+                "Weight unit for display", "Requires shipping", "Fulfillment service", "Product image URL",
+                "Image position", "Image alt text", "Variant image URL", "Gift card", "SEO title",
+                "SEO description", "Color (product.metafields.shopify.color-pattern)",
+                "Google Shopping / Google product category", "Google Shopping / Gender",
+                "Google Shopping / Age group", "Google Shopping / Manufacturer part number (MPN)",
+                "Google Shopping / Ad group name", "Google Shopping / Ads labels",
+                "Google Shopping / Condition", "Google Shopping / Custom product",
+                "Google Shopping / Custom label 0", "Google Shopping / Custom label 1",
+                "Google Shopping / Custom label 2", "Google Shopping / Custom label 3",
+                "Google Shopping / Custom label 4",
+            ]
+            
+            # GTF Attribute columns - 81 columns
+            GTF_ATTRIBUTE_COLUMNS = [
+                "gtf_product_type", "gtf_intended_gender_line", "gtf_primary_color",
+                "gtf_secondary_accent_colors", "gtf_color_temperature", "gtf_shade_depth",
+                "gtf_pattern_type", "gtf_pattern_scale", "gtf_print_graphic_placement",
+                "gtf_branding_visibility", "gtf_brand_identifier", "gtf_material_family",
+                "gtf_material_finish_handfeel", "gtf_fabric_weight", "gtf_stretch", "gtf_texture",
+                "gtf_transparency", "gtf_lining_present", "gtf_lining_type", "gtf_overall_silhouette",
+                "gtf_fit_descriptor", "gtf_garment_length", "gtf_rise", "gtf_inseam_hem_style",
+                "gtf_collar_type", "gtf_neckline_type", "gtf_closure_type", "gtf_closure_placement",
+                "gtf_hardware_color_finish", "gtf_zipper_details", "gtf_sleeve_type",
+                "gtf_sleeve_length", "gtf_cuff_style", "gtf_hem_style", "gtf_pocket_count",
+                "gtf_pocket_placement", "gtf_pocket_style", "gtf_seams_paneling", "gtf_stitch_color",
+                "gtf_shoulder_structure", "gtf_pleats_darts", "gtf_pleat_dart_location",
+                "gtf_vent_slit_details", "gtf_distressing", "gtf_wash", "gtf_embellishments",
+                "gtf_embellishment_density", "gtf_embellishment_placement", "gtf_embroidery",
+                "gtf_embroidery_motif_type", "gtf_embroidery_placement", "gtf_graphic_text",
+                "gtf_motif_theme", "gtf_style_vibe_tags", "gtf_seasonality", "gtf_occasion",
+                "gtf_price_tier_cue", "gtf_unique_identifying_features", "gtf_body_type_flattery",
+                "gtf_figure_emphasis", "gtf_size_run_tendency", "gtf_fit_category",
+                "gtf_bust_accommodation", "gtf_petite_friendly", "gtf_tall_friendly",
+                "gtf_style_archetype", "gtf_celebrity_reference", "gtf_trend_velocity",
+                "gtf_style_persona", "gtf_pinterest_aesthetic", "gtf_occasion_specific",
+                "gtf_cultural_context", "gtf_modesty_level", "gtf_destination_suitability",
+                "gtf_event_suitability", "gtf_formality_level", "gtf_versatility_score",
+                "gtf_complete_the_look", "gtf_frequently_paired_with", "gtf_shopper_mindset",
+                "gtf_key_selling_point",
+            ]
+            
+            ALL_COLUMNS = SHOPIFY_COLUMNS + GTF_ATTRIBUTE_COLUMNS
+            
             # Read uploaded file
-            content = uploaded_file.read().decode('utf-8')
+            content = uploaded_file.read().decode('utf-8-sig')
             reader = csv.DictReader(io.StringIO(content))
             rows = list(reader)
             
@@ -575,101 +627,119 @@ if st.session_state.get("show_file_tools"):
             products = {}
             
             for row in rows:
-                sku = str(row.get('SKU Code', '')).strip()
+                sku = (row.get('SKU Code') or row.get('SKU') or row.get('Style Code') or '').strip()
                 if not sku:
                     continue
-                    
-                title = str(row.get('Dress Name', '')).strip()
-                color = str(row.get('Colour', '')).strip().title()
-                size = str(row.get('Size', '')).strip()
-                length = str(row.get('Lenght', row.get('Length', ''))).strip()
-                material = str(row.get('Material', '')).replace('-', ' ').replace('100 ', '100% ').title()
-                price = row.get('Final Price', 0)
-                category = str(row.get('Category', '')).strip()
-                wash_care = str(row.get('Wash care', '')).strip()
-                weight_raw = str(row.get('Average Weight (kg)', '')).strip()
-                drive_link = str(row.get('Product Link (Google Drive/Shopify)', '')).strip()
                 
+                title = (row.get('Dress Name') or row.get('Product Name') or row.get('Title') or '').strip()
+                color = (row.get('Colour') or row.get('Color') or '').strip().title()
+                size = (row.get('Size') or '').strip()
+                length = (row.get('Lenght') or row.get('Length') or '').strip()
+                material = (row.get('Material') or row.get('Fabric') or '').replace('-', ' ').replace('100 ', '100% ').title()
+                price = row.get('Final Price') or row.get('Price') or '0'
+                category = (row.get('Category') or row.get('Type') or 'Clothing').strip()
+                wash_care = (row.get('Wash care') or row.get('Care Instructions') or '').strip()
+                weight_raw = (row.get('Average Weight (kg)') or row.get('Weight (kg)') or '').strip()
+                hs_code = (row.get('HS Code') or row.get('Hs Code') or '').strip()
+                
+                # Parse weight
                 try:
-                    weight = int(float(weight_raw.replace('kg', '').replace(' ', '').strip() or 0) * 1000)
+                    if 'kg' in weight_raw.lower():
+                        weight = int(float(re.sub(r'[^0-9.]', '', weight_raw)) * 1000)
+                    else:
+                        weight = int(float(weight_raw or 0) * 1000) if weight_raw else 500
                 except:
                     weight = 500
                 
                 handle = re.sub(r'[^a-z0-9]+', '-', f"{title}-{color}".lower()).strip('-')
                 product_key = f"{title}|{color}"
+                option2_value = length.title() if length and length.lower() not in ['', 'nan', 'none'] else ''
                 
-                if length and length.lower() not in ['', 'nan', 'none']:
-                    option2_value = length.title()
-                else:
-                    option2_value = ""
-                
-                body_html = f"<p><strong>Material:</strong> {material}</p>"
+                # Description
+                desc_parts = []
+                if material:
+                    desc_parts.append(f"<p><strong>Material:</strong> {material}</p>")
                 if wash_care and wash_care.lower() != 'nan':
-                    care_lines = wash_care.replace(';', '<br>')
-                    body_html += f"<p><strong>Care Instructions:</strong><br>{care_lines}</p>"
+                    desc_parts.append(f"<p><strong>Care:</strong><br>{wash_care.replace(';', '<br>')}</p>")
+                description = '\n'.join(desc_parts)
                 
                 tags = [t for t in [category, color] if t and t.lower() != 'nan']
+                product_category = f"Apparel & Accessories > Clothing > {category}" if category else "Apparel & Accessories > Clothing"
                 
-                if product_key not in products:
+                is_first = product_key not in products
+                shopify_row = {col: "" for col in ALL_COLUMNS}
+                
+                if is_first:
                     products[product_key] = True
-                    shopify_rows.append({
-                        'Handle': handle,
-                        'Title': f"{title} - {color}",
-                        'Body (HTML)': body_html,
-                        'Vendor': vendor_name,
-                        'Product Category': f"Apparel & Accessories > Clothing > {category}",
-                        'Type': category,
-                        'Tags': ', '.join(tags),
-                        'Published': 'TRUE',
-                        'Option1 Name': 'Size',
-                        'Option1 Value': size,
-                        'Option2 Name': 'Length' if option2_value else '',
-                        'Option2 Value': option2_value,
-                        'Variant SKU': sku,
-                        'Variant Grams': weight,
-                        'Variant Inventory Qty': 1,
-                        'Variant Inventory Policy': 'deny',
-                        'Variant Fulfillment Service': 'manual',
-                        'Variant Price': price,
-                        'Variant Requires Shipping': 'TRUE',
-                        'Variant Taxable': 'TRUE',
-                        'Image Src': '',
-                        'Status': 'draft'
+                    shopify_row.update({
+                        "Title": f"{title} - {color}",
+                        "URL handle": handle,
+                        "Description": description,
+                        "Vendor": vendor_name,
+                        "Product category": product_category,
+                        "Type": category,
+                        "Tags": ', '.join(tags),
+                        "Published on online store": "TRUE",
+                        "Status": "Draft",
+                        "SKU": sku,
+                        "Option1 name": "Size",
+                        "Option1 value": size,
+                        "Option2 name": "Length" if option2_value else "",
+                        "Option2 value": option2_value,
+                        "Price": price,
+                        "Charge tax": "TRUE",
+                        "Inventory tracker": "shopify",
+                        "Inventory quantity": "1",
+                        "Continue selling when out of stock": "DENY",
+                        "Weight value (grams)": weight,
+                        "Weight unit for display": "g",
+                        "Requires shipping": "TRUE",
+                        "Fulfillment service": "manual",
+                        "Image position": "1",
+                        "Image alt text": f"{title} {color}",
+                        "Gift card": "FALSE",
+                        "SEO title": f"{title} - {color} | {vendor_name}",
+                        "SEO description": f"Shop {title} in {color}.",
+                        "Color (product.metafields.shopify.color-pattern)": color.lower(),
+                        "Google Shopping / Google product category": product_category,
+                        "Google Shopping / Gender": "Female",
+                        "Google Shopping / Age group": "Adult",
+                        "Google Shopping / Manufacturer part number (MPN)": sku,
+                        "Google Shopping / Condition": "New",
+                        "Google Shopping / Custom product": "FALSE",
+                        "Google Shopping / Custom label 0": hs_code,
+                        # Pre-fill some GTF attributes
+                        "gtf_primary_color": color.lower(),
+                        "gtf_material_family": material.split()[0].lower() if material else "",
+                        "gtf_product_type": category.lower(),
                     })
                 else:
-                    shopify_rows.append({
-                        'Handle': handle,
-                        'Title': '',
-                        'Body (HTML)': '',
-                        'Vendor': '',
-                        'Product Category': '',
-                        'Type': '',
-                        'Tags': '',
-                        'Published': '',
-                        'Option1 Name': '',
-                        'Option1 Value': size,
-                        'Option2 Name': '',
-                        'Option2 Value': option2_value,
-                        'Variant SKU': sku,
-                        'Variant Grams': weight,
-                        'Variant Inventory Qty': 1,
-                        'Variant Inventory Policy': 'deny',
-                        'Variant Fulfillment Service': 'manual',
-                        'Variant Price': price,
-                        'Variant Requires Shipping': 'TRUE',
-                        'Variant Taxable': 'TRUE',
-                        'Image Src': '',
-                        'Status': ''
+                    shopify_row.update({
+                        "URL handle": handle,
+                        "SKU": sku,
+                        "Option1 value": size,
+                        "Option2 value": option2_value,
+                        "Price": price,
+                        "Charge tax": "TRUE",
+                        "Inventory tracker": "shopify",
+                        "Inventory quantity": "1",
+                        "Continue selling when out of stock": "DENY",
+                        "Weight value (grams)": weight,
+                        "Weight unit for display": "g",
+                        "Requires shipping": "TRUE",
+                        "Fulfillment service": "manual",
                     })
+                
+                shopify_rows.append(shopify_row)
             
             if shopify_rows:
-                # Create CSV output
                 output = io.StringIO()
-                writer = csv.DictWriter(output, fieldnames=shopify_rows[0].keys())
+                writer = csv.DictWriter(output, fieldnames=ALL_COLUMNS)
                 writer.writeheader()
                 writer.writerows(shopify_rows)
                 
                 st.success(f"✅ Converted {len(products)} products ({len(shopify_rows)} variants)")
+                st.info(f"📊 138 columns: 57 Shopify + 81 GTF attributes")
                 
                 st.download_button(
                     label="📥 Download Shopify CSV",
