@@ -491,9 +491,10 @@
       "department": "brand_followups",
       "priority": "high",
       "due_date": "2026-02-16",
-      "notes": "",
-      "done": false,
-      "created": "2026-02-13T16:48:17.684093"
+      "notes": "\u2705 Converted to Shopify format - 268 products, 695 variants",
+      "done": true,
+      "created": "2026-02-13T16:48:17.684093",
+      "completed_date": "2026-02-17"
     },
     {
       "id": "20260215193900",
