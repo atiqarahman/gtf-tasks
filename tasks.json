@@ -33,7 +33,7 @@
       "title": "Start accounting work",
       "department": "finance",
       "priority": "medium",
-      "due_date": "2026-02-15",
+      "due_date": "2026-02-16",
       "notes": "",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -43,7 +43,7 @@
       "title": "Make brand contracts with lawyer",
       "department": "legal",
       "priority": "low",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "Zoya to draft",
       "done": false,
       "created": "2026-02-12T16:00:00",
@@ -67,7 +67,7 @@
       "title": "Founder of Badooni follow up",
       "department": "brand_outreach",
       "priority": "low",
-      "due_date": "2026-02-15",
+      "due_date": "2026-02-16",
       "notes": "",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -101,7 +101,7 @@
       "title": "Fundraising angel strategy",
       "department": "fundraising",
       "priority": "high",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "Atiqa + Zoya",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -111,8 +111,8 @@
       "title": "Speak to Shopify",
       "department": "product",
       "priority": "high",
-      "due_date": "2026-02-16",
-      "notes": "PRIORITY - Calendar: 9:00-10:00am Feb 16",
+      "due_date": "2026-02-17",
+      "notes": "Scheduled 3pm Feb 17",
       "done": false,
       "created": "2026-02-12T16:00:00"
     },
@@ -137,7 +137,7 @@
       "title": "LinkedIn outreach strategy",
       "department": "hiring",
       "priority": "medium",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "",
       "done": false,
       "created": "2026-02-12T16:00:00",
@@ -149,7 +149,7 @@
       "title": "Fix LinkedIn profile",
       "department": "hiring",
       "priority": "medium",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "",
       "done": false,
       "created": "2026-02-12T16:00:00",
@@ -182,13 +182,14 @@
       "title": "International brands deck - create",
       "department": "fundraising",
       "priority": "medium",
-      "due_date": "2026-02-13",
+      "due_date": "2026-02-16",
       "notes": "Separate version/strategy",
-      "done": false,
+      "done": true,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
       "zoya_suggestion": "I can create a deck tailored for international brands \u2014 different value prop, logistics story, market opportunity. Tell me the angle you want.",
-      "reminder_scheduled": "2026-02-14T09:00:00"
+      "reminder_scheduled": "2026-02-14T09:00:00",
+      "completed_date": "2026-02-17"
     },
     {
       "id": "g015",
@@ -239,7 +240,7 @@
       "title": "Call Mashreq bank",
       "department": "finance",
       "priority": "high",
-      "due_date": "2026-02-16",
+      "due_date": "2026-02-18",
       "notes": "PRIORITY",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -249,19 +250,20 @@
       "title": "Make document for shipping companies",
       "department": "customs_shipping",
       "priority": "high",
-      "due_date": "2026-02-13",
+      "due_date": "2026-02-16",
       "notes": "PRIORITY",
-      "done": false,
+      "done": true,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can create a professional PDF/doc with GTF's shipping requirements, expected volumes, SLA needs, and questions for shipping companies. What info should I include?"
+      "zoya_suggestion": "I can create a professional PDF/doc with GTF's shipping requirements, expected volumes, SLA needs, and questions for shipping companies. What info should I include?",
+      "completed_date": "2026-02-17"
     },
     {
       "id": "g021",
       "title": "Follow up with all shipping companies",
       "department": "customs_shipping",
       "priority": "high",
-      "due_date": "2026-02-13",
+      "due_date": "2026-02-16",
       "notes": "PRIORITY",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -271,7 +273,7 @@
       "title": "Planning front end of website",
       "department": "product",
       "priority": "high",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "",
       "done": false,
       "created": "2026-02-12T16:00:00"
@@ -281,12 +283,13 @@
       "title": "Scope of work for Rahul and Shivraj",
       "department": "product",
       "priority": "high",
-      "due_date": "2026-02-15",
+      "due_date": "2026-02-16",
       "notes": "",
-      "done": false,
+      "done": true,
       "created": "2026-02-12T16:00:00",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can draft clear SOW docs for both \u2014 deliverables, timelines, milestones, communication expectations. Tell me their roles and I'll structure it."
+      "zoya_suggestion": "I can draft clear SOW docs for both \u2014 deliverables, timelines, milestones, communication expectations. Tell me their roles and I'll structure it.",
+      "completed_date": "2026-02-17"
     },
     {
       "id": "g026",
@@ -379,10 +382,11 @@
       "title": "Arrange pick up for Indian customer item on DHL website",
       "department": "customers",
       "priority": "high",
-      "due_date": "2026-02-15",
+      "due_date": "2026-02-16",
       "notes": "",
-      "done": false,
-      "created": "2026-02-12T21:40:59.857734"
+      "done": true,
+      "created": "2026-02-12T21:40:59.857734",
+      "completed_date": "2026-02-17"
     },
     {
       "id": "20260213004724",
@@ -420,19 +424,20 @@
       "title": "Send Zonos comprehensive document about shipping & customs issues",
       "department": "customs_shipping",
       "priority": "high",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "Prep for meeting on Feb 16. Reference: GTF_Logistics_Deep_Dive.md",
-      "done": false,
+      "done": true,
       "created": "2026-02-13T10:53:19.113722",
       "zoya_can_help": true,
-      "zoya_suggestion": "I can compile the logistics deep dive + specific questions for Zonos into a polished PDF. Just say go."
+      "zoya_suggestion": "I can compile the logistics deep dive + specific questions for Zonos into a polished PDF. Just say go.",
+      "completed_date": "2026-02-17"
     },
     {
       "id": "20260213065506g009",
       "title": "\ud83d\udcac Chat with Zoya about: Job description for Head of Te",
       "department": "hiring",
       "priority": "high",
-      "due_date": "2026-02-13",
+      "due_date": "2026-02-16",
       "notes": "Discuss Zoya's suggestion: I can draft the full JD \u2014 tech stack requirements, responsibilities, culture fit, equity details. Ready in 10 mins if you approve.",
       "done": false,
       "created": "2026-02-13T06:55:06.205836",
@@ -446,7 +451,7 @@
       "title": "\ud83d\udcac Chat with Zoya about: International brands deck - cr",
       "department": "fundraising",
       "priority": "high",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "Discuss Zoya's suggestion: I can create a deck tailored for international brands \u2014 different value prop, logistics story, market opportunity. Tell me the angle you want.",
       "done": false,
       "created": "2026-02-13T06:55:24.763815",
@@ -476,18 +481,138 @@
       "priority": "medium",
       "due_date": "2026-02-16",
       "notes": "GTF Meeting with bhavya house of oro  Monday, February 16 \u00b7 12:30 \u2013 1:30pm Time zone: Asia/Dubai Google Meet joining info Video call link: https://meet.google.com/bym-iaho-qui Or dial: \u202a(US) +1 435-574-4408\u202c PIN: \u202a124 375 417\u202c# More phone numbers: https://tel.meet/bym-iaho-qui?pin=1189853687851",
-      "done": false,
-      "created": "2026-02-13T07:02:43.419641"
+      "done": true,
+      "created": "2026-02-13T07:02:43.419641",
+      "completed_date": "2026-02-16"
     },
     {
       "id": "20260213164817",
       "title": "convert csv file of try on dress itrh new one into shopify",
       "department": "brand_followups",
       "priority": "high",
-      "due_date": "2026-02-14",
+      "due_date": "2026-02-16",
       "notes": "",
       "done": false,
       "created": "2026-02-13T16:48:17.684093"
+    },
+    {
+      "id": "20260215193900",
+      "title": "Draft GTF Shipping & Returns Policy for legal review",
+      "department": "legal",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "Draft terms covering: DDP model, signature required, no-refund scenarios (customs docs, refused duties, unreachable), RTO policy, return window. For Methani review. Reference: gtf-shipping/GTF_Shipping_Strategy_V1.md",
+      "done": false,
+      "created": "2026-02-15T19:39:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can draft the full shipping & returns policy based on Farfetch benchmarks and GTF model. Ready for your review then Methani."
+    },
+    {
+      "id": "20260216021200",
+      "title": "Zoya to take brands from old list and add them to tracker",
+      "department": "brand_outreach",
+      "priority": "medium",
+      "due_date": "2026-02-16",
+      "notes": "Go through old brand lists and add to International/Indian trackers",
+      "done": false,
+      "created": "2026-02-16T02:12:00",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can do this \u2014 just point me to the old lists."
+    },
+    {
+      "id": "20260216143001",
+      "title": "Send doc to MeritData (Tharun)",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-16",
+      "notes": "Doc created: gtf-docs/MeritData_GTF_Brief.pdf",
+      "done": true,
+      "created": "2026-02-16T14:30:01.829591",
+      "completed_date": "2026-02-17"
+    },
+    {
+      "id": "20260217001300",
+      "title": "Answer Zoya pitch deck questions (origin story, unfair advantage, vision, fears, ask)",
+      "department": "fundraising",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "Questions to answer:\n1. What moment made you realize GTF needed to exist?\n2. What do you know about this space that others don't?\n3. 10-year vision - what's the 2035 headline?\n4. What keeps you up at night about this business?\n5. How much are you raising and for what specifically?",
+      "done": false,
+      "created": "2026-02-17T00:16:16.199119",
+      "zoya_can_help": true,
+      "zoya_suggestion": "Once you answer these, I will make the pitch deck authentic to YOU."
+    },
+    {
+      "id": "20260217121700",
+      "title": "Find web designer for front end - start outreach",
+      "department": "hiring",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "Need web designer for marketplace front end",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519",
+      "zoya_can_help": true,
+      "zoya_suggestion": "I can help find and reach out to web designers - Upwork, Toptal, or local UAE talent."
+    },
+    {
+      "id": "20260217121701",
+      "title": "Send Zonos call recording to Zoya",
+      "department": "customs_shipping",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "So Zoya can compile everything from the call",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519"
+    },
+    {
+      "id": "20260217121702",
+      "title": "Discuss with Zoya: Brand upload script",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "Creating the script for brand uploads",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519"
+    },
+    {
+      "id": "20260217121703",
+      "title": "Discuss with Zoya: Marketplace architecture & optimizations",
+      "department": "product",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "Overall what we're building, what parts can be optimized",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519"
+    },
+    {
+      "id": "20260217121704",
+      "title": "Discuss with Zoya: Health & namaz routine",
+      "department": "quick",
+      "priority": "medium",
+      "due_date": "2026-02-17",
+      "notes": "Personal: health and reading namaz",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519"
+    },
+    {
+      "id": "20260217121705",
+      "title": "Discuss with Zoya: Founder Library daily concepts",
+      "department": "business",
+      "priority": "medium",
+      "due_date": "2026-02-17",
+      "notes": "Zoya shares concepts from founder books daily to discuss",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519"
+    },
+    {
+      "id": "20260217121706",
+      "title": "Discuss with Zoya: Launch timeline & brand onboarding contingency",
+      "department": "business",
+      "priority": "high",
+      "due_date": "2026-02-17",
+      "notes": "Timeline of launch, what if not enough brands, how to amplify",
+      "done": false,
+      "created": "2026-02-17T12:18:26.406519"
     }
   ]
 }

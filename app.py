@@ -153,6 +153,8 @@ if "show_calendar" not in st.session_state:
     st.session_state.show_calendar = False
 if "selected_dept" not in st.session_state:
     st.session_state.selected_dept = None
+if "show_file_tools" not in st.session_state:
+    st.session_state.show_file_tools = False
 
 # Styling
 st.markdown("""
@@ -453,6 +455,14 @@ with st.sidebar:
     
     st.markdown("---")
     
+    # File Tools
+    st.markdown("**🔧 File Tools**")
+    if st.button("📄 CSV → Shopify", key="file_tools_btn", use_container_width=True):
+        st.session_state.show_file_tools = True
+        st.rerun()
+    
+    st.markdown("---")
+    
     # Quick actions - Google Meet
     st.markdown("**Quick Meeting**")
     st.link_button("📹 Start Meet Now", "https://meet.google.com/new", use_container_width=True)
@@ -532,6 +542,146 @@ st.markdown(f"""
 
 if st.session_state.selected_dept:
     st.info(f"Filtered: {dept_labels.get(st.session_state.selected_dept, '')}")
+
+# File Tools Dialog
+if st.session_state.get("show_file_tools"):
+    st.markdown("### 🔧 File Tools")
+    
+    tool_col1, tool_col2 = st.columns([3, 1])
+    with tool_col2:
+        if st.button("✕ Close", key="close_file_tools"):
+            st.session_state.show_file_tools = False
+            st.rerun()
+    
+    st.markdown("---")
+    st.markdown("**CSV → Shopify Converter**")
+    st.caption("Upload a brand CSV file to convert it to Shopify import format")
+    
+    uploaded_file = st.file_uploader("Choose CSV file", type=["csv"], key="csv_upload")
+    vendor_name = st.text_input("Brand/Vendor Name", value="", placeholder="e.g. Try On Dress")
+    
+    if uploaded_file and vendor_name:
+        if st.button("🔄 Convert to Shopify Format", use_container_width=True, type="primary"):
+            import csv
+            import re
+            import io
+            
+            # Read uploaded file
+            content = uploaded_file.read().decode('utf-8')
+            reader = csv.DictReader(io.StringIO(content))
+            rows = list(reader)
+            
+            shopify_rows = []
+            products = {}
+            
+            for row in rows:
+                sku = str(row.get('SKU Code', '')).strip()
+                if not sku:
+                    continue
+                    
+                title = str(row.get('Dress Name', '')).strip()
+                color = str(row.get('Colour', '')).strip().title()
+                size = str(row.get('Size', '')).strip()
+                length = str(row.get('Lenght', row.get('Length', ''))).strip()
+                material = str(row.get('Material', '')).replace('-', ' ').replace('100 ', '100% ').title()
+                price = row.get('Final Price', 0)
+                category = str(row.get('Category', '')).strip()
+                wash_care = str(row.get('Wash care', '')).strip()
+                weight_raw = str(row.get('Average Weight (kg)', '')).strip()
+                drive_link = str(row.get('Product Link (Google Drive/Shopify)', '')).strip()
+                
+                try:
+                    weight = int(float(weight_raw.replace('kg', '').replace(' ', '').strip() or 0) * 1000)
+                except:
+                    weight = 500
+                
+                handle = re.sub(r'[^a-z0-9]+', '-', f"{title}-{color}".lower()).strip('-')
+                product_key = f"{title}|{color}"
+                
+                if length and length.lower() not in ['', 'nan', 'none']:
+                    option2_value = length.title()
+                else:
+                    option2_value = ""
+                
+                body_html = f"<p><strong>Material:</strong> {material}</p>"
+                if wash_care and wash_care.lower() != 'nan':
+                    care_lines = wash_care.replace(';', '<br>')
+                    body_html += f"<p><strong>Care Instructions:</strong><br>{care_lines}</p>"
+                
+                tags = [t for t in [category, color] if t and t.lower() != 'nan']
+                
+                if product_key not in products:
+                    products[product_key] = True
+                    shopify_rows.append({
+                        'Handle': handle,
+                        'Title': f"{title} - {color}",
+                        'Body (HTML)': body_html,
+                        'Vendor': vendor_name,
+                        'Product Category': f"Apparel & Accessories > Clothing > {category}",
+                        'Type': category,
+                        'Tags': ', '.join(tags),
+                        'Published': 'TRUE',
+                        'Option1 Name': 'Size',
+                        'Option1 Value': size,
+                        'Option2 Name': 'Length' if option2_value else '',
+                        'Option2 Value': option2_value,
+                        'Variant SKU': sku,
+                        'Variant Grams': weight,
+                        'Variant Inventory Qty': 1,
+                        'Variant Inventory Policy': 'deny',
+                        'Variant Fulfillment Service': 'manual',
+                        'Variant Price': price,
+                        'Variant Requires Shipping': 'TRUE',
+                        'Variant Taxable': 'TRUE',
+                        'Image Src': '',
+                        'Status': 'draft'
+                    })
+                else:
+                    shopify_rows.append({
+                        'Handle': handle,
+                        'Title': '',
+                        'Body (HTML)': '',
+                        'Vendor': '',
+                        'Product Category': '',
+                        'Type': '',
+                        'Tags': '',
+                        'Published': '',
+                        'Option1 Name': '',
+                        'Option1 Value': size,
+                        'Option2 Name': '',
+                        'Option2 Value': option2_value,
+                        'Variant SKU': sku,
+                        'Variant Grams': weight,
+                        'Variant Inventory Qty': 1,
+                        'Variant Inventory Policy': 'deny',
+                        'Variant Fulfillment Service': 'manual',
+                        'Variant Price': price,
+                        'Variant Requires Shipping': 'TRUE',
+                        'Variant Taxable': 'TRUE',
+                        'Image Src': '',
+                        'Status': ''
+                    })
+            
+            if shopify_rows:
+                # Create CSV output
+                output = io.StringIO()
+                writer = csv.DictWriter(output, fieldnames=shopify_rows[0].keys())
+                writer.writeheader()
+                writer.writerows(shopify_rows)
+                
+                st.success(f"✅ Converted {len(products)} products ({len(shopify_rows)} variants)")
+                
+                st.download_button(
+                    label="📥 Download Shopify CSV",
+                    data=output.getvalue(),
+                    file_name=f"{vendor_name.replace(' ', '_')}_shopify.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            else:
+                st.error("No valid products found in CSV")
+    
+    st.markdown("---")
 
 if st.session_state.show_calendar:
     # Calendar view with clickable colored task cards
